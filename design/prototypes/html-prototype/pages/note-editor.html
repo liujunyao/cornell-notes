@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>笔记编辑 - 康奈尔笔记学习助手</title>
+  <link rel="stylesheet" href="../css/design-system.css">
+  <style>
+    /* 笔记编辑页特定样式 */
+    .editor-page {
+      padding-top: var(--header-height);
+      padding-bottom: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-header {
+      height: var(--header-height);
+      background: var(--color-white);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--spacing-md);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+
+    .editor-title-input {
+      flex: 1;
+      border: none;
+      font-size: var(--font-size-h1-mobile);
+      font-weight: 700;
+      padding: var(--spacing-sm);
+      margin: 0 var(--spacing-md);
+    }
+
+    .editor-title-input:focus {
+      outline: none;
+      background: var(--color-background);
+      border-radius: var(--radius-sm);
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      align-items: center;
+    }
+
+    .editor-actions .save-status {
+      font-size: var(--font-size-small-mobile);
+      color: var(--color-gray-500);
+      margin-right: var(--spacing-sm);
+    }
+
+    .editor-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 三分栏布局 - 线索栏 | 笔记栏（经典模式下） + 总结栏在下方 */
+    .editor-three-columns {
+      display: flex;
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+      flex-wrap: wrap;  /* 允许换行 */
+    }
+
+    /* 经典模式 - 两行三列 */
+    /* 第一行：线索栏(20%) + 笔记栏(80%) */
+    .cue-column {
+      width: 20%;
+      background: var(--color-sidebar);
+      border-right: 1px solid var(--color-gray-300);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: width var(--transition-base), border var(--transition-base), padding var(--transition-base);
+    }
+
+    .note-column {
+      width: 80%;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-white);
+      transition: width var(--transition-base);
+      flex: 1;
+    }
+
+    /* 第二行：总结栏(100%) - 默认占满宽度 */
+    .summary-row {
+      width: 100%;
+      order: 10;  /* 确保在最后 */
+      height: 20%;
+      border-top: 2px solid var(--color-gray-300);
+      background: var(--color-sidebar);
+      display: flex;
+      flex-direction: column;
+      transition: height var(--transition-base), width var(--transition-base), border var(--transition-base), padding var(--transition-base);
+    }
+
+    /* 宽屏模式：三栏一行 */
+    @media (min-width: 1024px) {
+      .editor-three-columns {
+        flex-wrap: nowrap;  /* 禁止换行 */
+        gap: 0;
+      }
+
+      .cue-column {
+        width: 15%;
+        flex-wrap: nowrap;
+      }
+
+      .note-column {
+        width: 65%;
+        flex-wrap: nowrap;
+      }
+
+      .summary-row {
+        width: 20%;
+        order: 0;  /* 不用排序，直接跟在笔记栏后 */
+        height: auto;
+        border-top: none;
+        border-left: 1px solid var(--color-gray-300);
+        flex-shrink: 0;
+      }
+
+      /* 专注模式：辅助栏折叠时，笔记栏占满 */
+      .editor-three-columns.focus-mode .note-column {
+        width: 100% !important;
+      }
+    }
+
+    /* 超宽屏模式：优化比例 */
+    @media (min-width: 1600px) {
+      .cue-column {
+        width: 15%;
+      }
+
+      .note-column {
+        width: 65%;
+      }
+
+      .summary-row {
+        width: 20%;
+      }
+    }
+
+    .cue-column-header {
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--color-white);
+      border-bottom: 1px solid var(--color-gray-300);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-sm);
+      min-height: 52px;
+    }
+
+    .cue-column-title {
+      font-size: var(--font-size-h2-mobile);
+      font-weight: 700;
+      color: var(--color-gray-900);
+      flex: 1;
+    }
+
+    .collapse-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: var(--color-background);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: all var(--transition-fast);
+      font-size: 16px;
+      padding: 0;
+    }
+
+    .collapse-btn:hover {
+      background: var(--color-gray-300);
+    }
+
+    .cue-column.collapsed {
+      width: 0 !important;
+      min-width: 0;
+      overflow: hidden;
+      border-right: none;
+      padding: 0;
+    }
+
+    .cue-column.collapsed .cue-column-header,
+    .cue-column.collapsed .cue-column-content {
+      display: none;
+    }
+
+    .summary-row.collapsed {
+      height: 0 !important;
+      min-height: 0;
+      overflow: hidden;
+      border-top: none;
+      border-left: none;
+      padding: 0;
+    }
+
+    .summary-row.collapsed .summary-row-header,
+    .summary-row.collapsed .summary-content {
+      display: none;
+    }
+
+    /* 宽屏模式下的折叠样式 */
+    @media (min-width: 1024px) {
+      .cue-column.collapsed {
+        border-right: none;
+        border-left: none;
+      }
+
+      .summary-row.collapsed {
+        width: 0 !important;
+        min-width: 0;
+        border-left: none;
+      }
+    }
+
+    .cue-column-content {
+      flex: 1;
+      padding: var(--spacing-md);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+
+    .cue-textarea {
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      border: none;
+      resize: none;
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-base-mobile);
+      line-height: 1.8;
+      background: transparent;
+      color: var(--color-gray-900);
+      padding: 0;
+      margin: 0;
+    }
+
+    .cue-textarea:focus {
+      outline: none;
+    }
+
+    .ai-generate-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-small-desktop);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      cursor: pointer;
+      border: none;
+      transition: transform var(--transition-base);
+    }
+
+    .ai-generate-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--color-white);
+      border-bottom: 1px solid var(--color-gray-300);
+      flex-wrap: wrap;
+      min-height: 52px;
+    }
+
+    .toolbar-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-sm);
+      background: var(--color-white);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-size: 16px;
+    }
+
+    .toolbar-btn:hover {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+
+    .toolbar-btn.active {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .ai-feature-btn {
+      font-size: 18px;
+    }
+
+    /* 深度探索对话面板 - 浮动层 */
+    .explore-chat-panel {
+      position: fixed;
+      right: -400px;
+      top: var(--header-height);
+      bottom: 0;
+      width: 400px;
+      background: var(--color-white);
+      box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      transition: right var(--transition-base);
+    }
+
+    .explore-chat-panel.open {
+      right: 0;
+    }
+
+    .explore-chat-header {
+      padding: var(--spacing-md);
+      background: var(--color-white);
+      border-bottom: 1px solid var(--color-gray-300);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 56px;
+    }
+
+    .explore-chat-title {
+      font-size: var(--font-size-h2-mobile);
+      font-weight: 700;
+      color: var(--color-gray-900);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .explore-chat-close-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-background);
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-size: 18px;
+    }
+
+    .explore-chat-close-btn:hover {
+      background: var(--color-gray-300);
+    }
+
+    /* 对话内容区域 */
+    .explore-chat-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .explore-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--spacing-md);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    /* 对话消息样式 - QA形式 */
+    .chat-qa-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md);
+      background: var(--color-background);
+      border-radius: var(--radius-md);
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .chat-question {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+    }
+
+    .chat-question-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: var(--font-size-small-desktop);
+      font-weight: 600;
+      color: var(--color-gray-700);
+    }
+
+    .chat-question-content {
+      font-size: var(--font-size-base-mobile);
+      color: var(--color-gray-900);
+      line-height: 1.6;
+      padding-left: 28px;
+    }
+
+    .chat-answer {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-xs);
+      margin-top: var(--spacing-sm);
+      padding-top: var(--spacing-sm);
+      border-top: 1px solid var(--color-gray-300);
+    }
+
+    .chat-answer-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: var(--font-size-small-desktop);
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .chat-answer-content {
+      font-size: var(--font-size-base-mobile);
+      color: var(--color-gray-700);
+      line-height: 1.6;
+      padding-left: 28px;
+      white-space: pre-line;
+    }
+
+    .chat-timestamp {
+      font-size: var(--font-size-small-mobile);
+      color: var(--color-gray-500);
+      margin-top: var(--spacing-xs);
+      padding-left: 28px;
+    }
+
+    /* 输入区域 */
+    .explore-chat-input-area {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md);
+      background: var(--color-white);
+      border-top: 1px solid var(--color-gray-300);
+    }
+
+    .explore-chat-input {
+      width: 100%;
+      min-height: 80px;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-base-mobile);
+      outline: none;
+      transition: border-color var(--transition-fast);
+      resize: vertical;
+    }
+
+    .explore-chat-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .explore-chat-send-btn {
+      align-self: flex-end;
+      padding: var(--spacing-sm) var(--spacing-lg);
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .explore-chat-send-btn:hover {
+      background: var(--color-primary);
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      background: var(--color-gray-300);
+      margin: 0 var(--spacing-xs);
+    }
+
+    .note-editor {
+      flex: 1;
+      padding: var(--spacing-xl);
+      overflow-y: auto;
+    }
+
+    .note-textarea {
+      width: 100%;
+      height: 100%;
+      min-height: 500px;
+      border: none;
+      resize: none;
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-base-desktop);
+      line-height: var(--line-height-loose);
+      color: var(--color-gray-900);
+    }
+
+    .note-textarea:focus {
+      outline: none;
+    }
+
+    .summary-row-header {
+      padding: var(--spacing-sm) var(--spacing-md);
+      background: var(--color-white);
+      border-bottom: 1px solid var(--color-gray-300);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 52px;
+    }
+
+    .summary-row-title {
+      font-size: var(--font-size-h2-mobile);
+      font-weight: 700;
+      color: var(--color-gray-900);
+    }
+
+    .save-status {
+      font-size: var(--font-size-small-mobile);
+      color: var(--color-gray-500);
+    }
+
+    .summary-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: var(--spacing-md);
+    }
+
+
+    .summary-textarea {
+      width: 100%;
+      height: 100%;
+      flex: 1;
+      border: none;
+      resize: none;
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-base-mobile);
+      line-height: 1.8;
+      background: transparent;
+      color: var(--color-gray-900);
+      padding: 0;
+      margin: 0;
+    }
+
+    .summary-textarea:focus {
+      outline: none;
+    }
+
+    /* 移动端适配 */
+    @media (max-width: 767px) {
+      .editor-three-columns {
+        flex-direction: column;
+      }
+
+      .cue-column,
+      .note-column {
+        width: 100%;
+      }
+
+      .cue-column {
+        display: none; /* 移动端默认隐藏 */
+      }
+
+      .summary-row {
+        display: none; /* 移动端默认隐藏 */
+      }
+
+      /* 添加标签页切换 */
+      .mobile-tabs {
+        display: flex;
+        background: var(--color-white);
+        border-bottom: 1px solid var(--color-gray-300);
+      }
+
+      .mobile-tab {
+        flex: 1;
+        padding: var(--spacing-md);
+        text-align: center;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+      }
+
+      .mobile-tab.active {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+        font-weight: 600;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="editor-page">
+    <!-- 顶部标题栏 -->
+    <header class="editor-header">
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+        ← 返回
+      </button>
+      <input
+        type="text"
+        class="editor-title-input"
+        placeholder="未命名笔记"
+        value="康奈尔笔记法介绍"
+      />
+      <div class="editor-actions">
+        <div class="save-status" id="saveStatus">已保存 14:32</div>
+        <button class="btn btn-secondary" id="toggleSidebars" title="显示/隐藏辅助栏">
+          📐 辅助栏
+        </button>
+        <button class="btn btn-secondary" id="toggleExploreChat" title="深度探索">
+          💭 深度探索
+        </button>
+        <button class="btn btn-primary" id="saveBtn">💾 保存</button>
+      </div>
+    </header>
+
+    <!-- 编辑器容器 -->
+    <div class="editor-container">
+      <div class="editor-three-columns">
+
+        <!-- 线索栏 (25%) -->
+        <aside class="cue-column">
+          <div class="cue-column-header">
+            <h2 class="cue-column-title">📌 线索</h2>
+          </div>
+          <div class="cue-column-content">
+            <textarea
+              class="cue-textarea"
+              placeholder="输入关键词、问题或重点..."
+            >什么是康奈尔笔记法？
+5R 流程是什么？
+如何有效使用线索栏？
+为什么要使用三分栏布局？</textarea>
+          </div>
+        </aside>
+
+        <!-- 笔记栏 (75%) -->
+        <main class="note-column">
+          <!-- 工具栏 -->
+          <div class="toolbar">
+            <!-- 基础格式 -->
+            <button class="toolbar-btn" title="加粗">B</button>
+            <button class="toolbar-btn" title="斜体">I</button>
+            <button class="toolbar-btn" title="下划线">U</button>
+            <button class="toolbar-btn" title="删除线">S</button>
+            <div class="toolbar-divider"></div>
+
+            <!-- 列表 -->
+            <button class="toolbar-btn" title="有序列表">1.</button>
+            <button class="toolbar-btn" title="无序列表">•</button>
+            <button class="toolbar-btn" title="任务清单">☐</button>
+            <div class="toolbar-divider"></div>
+
+            <!-- 插入 -->
+            <button class="toolbar-btn" title="插入图片">🖼</button>
+            <button class="toolbar-btn" title="插入代码">&lt;/&gt;</button>
+            <button class="toolbar-btn" title="插入公式">∑</button>
+            <button class="toolbar-btn" title="插入表格">⊞</button>
+            <div class="toolbar-divider"></div>
+
+            <!-- 高亮 -->
+            <button class="toolbar-btn" style="background: rgba(255, 153, 0, 0.3);" title="重点问题"></button>
+            <button class="toolbar-btn" style="background: rgba(153, 0, 255, 0.3);" title="反思心得"></button>
+            <button class="toolbar-btn" style="background: rgba(255, 51, 51, 0.3);" title="警示易错"></button>
+            <div class="toolbar-divider"></div>
+
+            <!-- AI 功能 -->
+            <button class="toolbar-btn ai-feature-btn" id="aiExtractCues" title="AI 提炼线索" data-feature="extract-cues">🧠</button>
+            <button class="toolbar-btn ai-feature-btn" id="aiHighlight" title="AI 高亮内容" data-feature="highlight">✨</button>
+            <button class="toolbar-btn ai-feature-btn" id="aiMindmap" title="AI 思维导图" data-feature="mindmap">🗺️</button>
+          </div>
+
+          <!-- 笔记编辑区 -->
+          <div class="note-editor">
+            <textarea class="note-textarea" placeholder="开始记录你的笔记...">康奈尔笔记法是一种<span class="highlight-core">系统化的笔记方法</span>，由康奈尔大学教授 Walter Pauk 于 1950 年代发明。
+
+该方法的核心是将笔记页面分为三个区域：
+
+1. 线索栏（Cue Column）- 左侧，约占 25%
+   记录关键词、问题和提示
+
+2. 笔记栏（Note Column）- 右侧，约占 75%
+   记录课堂内容、讲座笔记或阅读要点
+
+3. 总结栏（Summary Row）- 底部，约占 20%
+   概括总结本页的核心内容
+
+<span class="highlight-problem">为什么康奈尔笔记法有效？</span>
+
+因为它遵循 <span class="highlight-core">5R 流程</span>：
+• Record（记录）- 在笔记栏记录主要内容
+• Reduce（简化）- 在线索栏提炼关键词和问题
+• Recite（背诵）- 遮盖笔记栏，根据线索回忆
+• Reflect（反思）- 思考内容的意义和联系
+• Review（复习）- 定期回顾和总结
+
+<span class="highlight-case">使用案例</span>：
+学生 A 在使用康奈尔笔记法后，考试成绩提升了 20%。原因是：
+1. 线索栏的问题引导主动思考
+2. 总结栏帮助梳理知识结构
+3. 定期复习加深记忆
+
+<span class="highlight-reflection">个人心得</span>：
+康奈尔笔记法不仅是记录工具，更是学习方法。通过系统化的流程，将被动接收转变为主动思考。
+
+<span class="highlight-alert">常见误区</span>：
+• 不要在上课时就填写线索栏（应该课后整理）
+• 总结栏不是简单的摘抄，而是用自己的话概括
+• 复习时要遮盖笔记栏，只看线索栏进行回忆</textarea>
+          </div>
+        </main>
+
+        <!-- 总结栏（底部 20% / 宽屏右侧 25%） -->
+        <section class="summary-row">
+        <div class="summary-row-header">
+          <h2 class="summary-row-title">💡 总结</h2>
+          <button class="toolbar-btn" id="aiGapCheckBtn" title="AI 查漏补缺">🔍</button>
+        </div>
+        <div class="summary-content">
+          <textarea class="summary-textarea" placeholder="总结本页的核心内容...">康奈尔笔记法通过三栏布局和 5R 流程，将笔记记录转化为系统化的学习过程。关键在于线索栏的主动提问和定期复习。</textarea>
+        </div>
+      </section>
+
+      </div> <!-- 关闭 .editor-three-columns -->
+    </div> <!-- 关闭 .editor-container -->
+
+    <!-- 深度探索对话面板 - 浮动层 -->
+    <aside class="explore-chat-panel" id="exploreChatPanel">
+      <div class="explore-chat-header">
+        <h2 class="explore-chat-title">
+          <span>💭</span>
+          <span>深度探索</span>
+        </h2>
+        <button class="explore-chat-close-btn" id="closeExploreChatBtn" title="关闭">
+          ✕
+        </button>
+      </div>
+
+      <div class="explore-chat-content">
+        <div class="explore-chat-messages" id="exploreChatMessages">
+          <!-- 对话历史将在这里显示 -->
+        </div>
+
+        <div class="explore-chat-input-area">
+          <textarea
+            class="explore-chat-input"
+            id="exploreChatInput"
+            placeholder="输入你的问题，深入探索知识...&#10;&#10;例如：&#10;• 什么是光合作用？&#10;• 详细说说暗反应的过程"
+            rows="3"
+          ></textarea>
+          <button class="explore-chat-send-btn" id="exploreChatSendBtn">发送</button>
+        </div>
+      </div>
+    </aside>
+
+  </div> <!-- 关闭 .editor-page -->
+
+  <script>
+    // ===== 智能布局系统（三级响应式断点） =====
+    function detectLayoutMode() {
+      const screenWidth = window.innerWidth;
+      let mode = 'classic';  // 默认经典模式
+      let modeLabel = '经典模式（两栏+底部）';
+      let layoutInfo = '   线索栏: 25% | 笔记栏: 75%\n   总结栏: 底部 20% 高度';
+
+      if (screenWidth >= 1600) {
+        mode = 'ultra-wide';
+        modeLabel = '超宽屏模式（三栏优化）';
+        layoutInfo = '   线索栏: 20% | 笔记栏: 52% | 总结栏: 28%（右侧）';
+      } else if (screenWidth >= 1024) {
+        mode = 'wide';
+        modeLabel = '横屏模式（三栏）';
+        layoutInfo = '   线索栏: 20% | 笔记栏: 55% | 总结栏: 25%（右侧）';
+      }
+
+      console.log('📐 屏幕宽度:', screenWidth + 'px');
+      console.log('🖥️ 布局模式:', modeLabel);
+      console.log(layoutInfo);
+
+      return { mode, screenWidth };
+    }
+
+    // 页面加载时检测
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('═══════════════════════════════════════');
+      console.log('🎨 康奈尔笔记编辑器 - 智能布局系统');
+      console.log('═══════════════════════════════════════');
+      const result = detectLayoutMode();
+      console.log('═══════════════════════════════════════');
+
+      // 显示设备类型提示
+      if (result.screenWidth < 768) {
+        console.log('📱 设备类型: 手机');
+      } else if (result.screenWidth < 1024) {
+        console.log('📱 设备类型: 平板竖屏 / 小屏笔记本');
+      } else if (result.screenWidth < 1600) {
+        console.log('💻 设备类型: 平板横屏 / 笔记本');
+      } else {
+        console.log('🖥️ 设备类型: 桌面显示器 / 宽屏');
+      }
+      console.log('═══════════════════════════════════════');
+    });
+
+    // 窗口大小改变时重新检测
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        console.log('\n🔄 窗口大小已改变，重新检测布局...');
+        const result = detectLayoutMode();
+
+        // 显示切换提示
+        showLayoutSwitchNotification(result.mode);
+      }, 500);
+    });
+
+    // 显示布局切换通知
+    function showLayoutSwitchNotification(mode) {
+      const existingNotif = document.querySelector('.layout-switch-notif');
+      if (existingNotif) existingNotif.remove();
+
+      let text = '📱 已切换到经典模式';
+      if (mode === 'wide') {
+        text = '🖥️ 已切换到横屏模式';
+      } else if (mode === 'ultra-wide') {
+        text = '🖥️ 已切换到超宽屏模式';
+      }
+
+      const notif = document.createElement('div');
+      notif.className = 'layout-switch-notif';
+      notif.textContent = text;
+      notif.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: rgba(67, 97, 238, 0.95);
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: slideInFadeOut 3s ease-in-out forwards;
+      `;
+
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideInFadeOut {
+          0% { opacity: 0; transform: translateX(20px); }
+          10% { opacity: 1; transform: translateX(0); }
+          90% { opacity: 1; transform: translateX(0); }
+          100% { opacity: 0; transform: translateX(20px); }
+        }
+      `;
+      document.head.appendChild(style);
+
+      document.body.appendChild(notif);
+      setTimeout(() => notif.remove(), 3000);
+    }
+
+    // ===== 自动保存功能演示 =====
+    let saveTimeout;
+    const saveStatus = document.getElementById('saveStatus');
+
+    function autoSave() {
+      clearTimeout(saveTimeout);
+      saveStatus.textContent = '保存中...';
+
+      saveTimeout = setTimeout(() => {
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        saveStatus.textContent = `已保存 ${timeStr}`;
+        console.log('💾 笔记已自动保存');
+      }, 2000);
+    }
+
+    // 监听所有 textarea 的输入
+    document.querySelectorAll('textarea').forEach(textarea => {
+      textarea.addEventListener('input', autoSave);
+    });
+
+    // 工具栏按钮功能
+    document.querySelectorAll('.toolbar-btn:not(.ai-feature-btn)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        btn.classList.toggle('active');
+        console.log('工具栏操作:', btn.title);
+      });
+    });
+
+    // AI 功能按钮
+    document.querySelectorAll('.ai-feature-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const feature = btn.getAttribute('data-feature');
+        let message = '';
+
+        switch(feature) {
+          case 'extract-cues':
+            message = '🧠 AI 正在提炼线索...';
+            break;
+          case 'highlight':
+            message = '✨ AI 正在高亮内容...';
+            break;
+          case 'mindmap':
+            message = '🗺️ AI 正在生成思维导图...';
+            break;
+        }
+
+        console.log(message);
+        alert('AI 功能开发中...\n' + message);
+      });
+    });
+
+    // AI 功能演示
+    document.querySelectorAll('.ai-generate-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        alert('AI 功能开发中...');
+      });
+    });
+
+    // 保存按钮功能
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        // 手动触发保存
+        autoSave();
+
+        // 显示保存成功提示
+        const originalText = saveBtn.textContent;
+        saveBtn.textContent = '✅ 已保存';
+        saveBtn.disabled = true;
+
+        setTimeout(() => {
+          saveBtn.textContent = originalText;
+          saveBtn.disabled = false;
+        }, 2000);
+
+        console.log('💾 笔记已手动保存');
+      });
+    }
+
+    // ===== AI 查漏补缺功能 =====
+    const aiGapCheckBtn = document.getElementById('aiGapCheckBtn');
+    if (aiGapCheckBtn) {
+      aiGapCheckBtn.addEventListener('click', () => {
+        const summaryContent = document.querySelector('.summary-textarea').value;
+        if (!summaryContent.trim()) {
+          alert('请先填写总结内容，AI 才能进行查漏补缺分析');
+          return;
+        }
+        alert('🔍 AI 正在分析总结内容...\n\n功能开发中：\n• 检查知识盲点\n• 发现遗漏的关键概念\n• 提供补充建议');
+        console.log('🔍 AI 查漏补缺分析已启动');
+      });
+    }
+
+    // ===== 深度探索对话面板功能 =====
+    const toggleExploreChatBtn = document.getElementById('toggleExploreChat');
+    const closeExploreChatBtn = document.getElementById('closeExploreChatBtn');
+    const exploreChatPanel = document.getElementById('exploreChatPanel');
+    const exploreChatInput = document.getElementById('exploreChatInput');
+    const exploreChatSendBtn = document.getElementById('exploreChatSendBtn');
+    const exploreChatMessages = document.getElementById('exploreChatMessages');
+
+    let chatOpen = false;
+    let chatHistory = [];
+
+    // 打开对话面板
+    if (toggleExploreChatBtn) {
+      toggleExploreChatBtn.addEventListener('click', () => {
+        chatOpen = true;
+        exploreChatPanel.classList.add('open');
+        toggleExploreChatBtn.classList.add('active');
+
+        // 焦点到输入框
+        setTimeout(() => exploreChatInput.focus(), 300);
+
+        console.log('💭 深度探索面板已打开');
+      });
+    }
+
+    // 关闭对话面板
+    if (closeExploreChatBtn) {
+      closeExploreChatBtn.addEventListener('click', () => {
+        chatOpen = false;
+        exploreChatPanel.classList.remove('open');
+        toggleExploreChatBtn.classList.remove('active');
+
+        console.log('💭 深度探索面板已关闭');
+      });
+    }
+
+    // 发送消息
+    function sendMessage() {
+      const question = exploreChatInput.value.trim();
+      if (!question) return;
+
+      // 添加用户问题
+      addChatMessage('user', question);
+
+      // 清空输入框
+      exploreChatInput.value = '';
+
+      // 模拟AI回答（实际应该调用API）
+      setTimeout(() => {
+        const answer = generateMockAnswer(question);
+        addChatMessage('assistant', answer);
+      }, 1000);
+    }
+
+    // 添加对话消息
+    function addChatMessage(role, content) {
+      const timestamp = new Date().toLocaleTimeString('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      // 如果是新的QA对，创建新的QA项
+      if (role === 'user') {
+        const qaItem = document.createElement('div');
+        qaItem.className = 'chat-qa-item';
+        qaItem.dataset.timestamp = Date.now();
+
+        qaItem.innerHTML = `
+          <div class="chat-question">
+            <div class="chat-question-header">
+              <span>🙋</span>
+              <span>我的问题</span>
+            </div>
+            <div class="chat-question-content">${content}</div>
+            <div class="chat-timestamp">${timestamp}</div>
+          </div>
+        `;
+
+        exploreChatMessages.appendChild(qaItem);
+        exploreChatMessages.scrollTop = exploreChatMessages.scrollHeight;
+
+        // 保存到历史
+        chatHistory.push({ role, content, timestamp });
+      } else {
+        // 找到最后一个QA项，添加答案
+        const lastQA = exploreChatMessages.querySelector('.chat-qa-item:last-child');
+        if (lastQA) {
+          const answerDiv = document.createElement('div');
+          answerDiv.className = 'chat-answer';
+          answerDiv.innerHTML = `
+            <div class="chat-answer-header">
+              <span>🤖</span>
+              <span>AI 回答</span>
+            </div>
+            <div class="chat-answer-content">${content}</div>
+            <div class="chat-timestamp">${timestamp}</div>
+          `;
+          lastQA.appendChild(answerDiv);
+          exploreChatMessages.scrollTop = exploreChatMessages.scrollHeight;
+
+          // 保存到历史
+          chatHistory.push({ role, content, timestamp });
+        }
+      }
+    }
+
+    // 模拟AI回答
+    function generateMockAnswer(question) {
+      const answers = {
+        '光合作用': '光合作用是植物、藻类和某些细菌利用光能，将二氧化碳和水转化为有机物，并释放氧气的过程。\n\n基本原理包括：\n1. 光反应：在叶绿体的类囊体膜上进行，光能转化为化学能\n2. 暗反应：在叶绿体基质中进行，利用光反应产生的能量固定CO₂',
+        '暗反应': '暗反应又称卡尔文循环，是光合作用的第二阶段。主要过程：\n\n1. CO₂固定：CO₂与RuBP结合\n2. 还原：利用ATP和NADPH将3-磷酸甘油酸还原\n3. RuBP再生：部分产物用于再生RuBP\n\n整个过程不需要光，但需要光反应提供的ATP和NADPH。',
+        '叶绿体': '叶绿体是植物细胞中进行光合作用的细胞器。结构包括：\n\n• 外膜和内膜：双层膜结构\n• 类囊体：进行光反应的场所\n• 基质：进行暗反应的场所\n• 叶绿素：吸收光能的色素\n\n叶绿体是半自主性细胞器，含有自己的DNA和核糖体。'
+      };
+
+      // 简单的关键词匹配
+      for (const [key, value] of Object.entries(answers)) {
+        if (question.includes(key)) {
+          return value;
+        }
+      }
+
+      return '这是一个很好的问题！让我来帮你分析一下...\n\n（这是一个模拟回答，实际应用中会调用真实的AI API来生成回答）';
+    }
+
+    // 发送按钮点击
+    if (exploreChatSendBtn) {
+      exploreChatSendBtn.addEventListener('click', sendMessage);
+    }
+
+    // 输入框回车发送（Ctrl+Enter）
+    if (exploreChatInput) {
+      exploreChatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+    }
+
+    // ===== 折叠/展开功能 =====
+    const cueColumn = document.querySelector('.cue-column');
+    const summaryRow = document.querySelector('.summary-row');
+    const noteColumn = document.querySelector('.note-column');
+    // editorThreeColumns 已在上面声明
+    const toggleSidebarsBtn = document.getElementById('toggleSidebars');
+
+    let sidebarsVisible = true; // 默认显示辅助栏
+
+    // 统一控制线索栏和总结栏的折叠/展开
+    if (toggleSidebarsBtn) {
+      toggleSidebarsBtn.addEventListener('click', () => {
+        sidebarsVisible = !sidebarsVisible;
+
+        if (sidebarsVisible) {
+          // 展开辅助栏
+          cueColumn.classList.remove('collapsed');
+          summaryRow.classList.remove('collapsed');
+          editorThreeColumns.classList.remove('focus-mode');
+          toggleSidebarsBtn.textContent = '📐 辅助栏';
+          console.log('📐 辅助栏已展开');
+        } else {
+          // 折叠辅助栏
+          cueColumn.classList.add('collapsed');
+          summaryRow.classList.add('collapsed');
+          editorThreeColumns.classList.add('focus-mode');
+          toggleSidebarsBtn.textContent = '📝 专注';
+          console.log('📝 已进入专注模式');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

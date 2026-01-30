@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>复习页面 - 康奈尔笔记学习助手</title>
+  <link rel="stylesheet" href="../css/design-system.css">
+  <style>
+    /* 复习页面特定样式 */
+    .review-page {
+      padding-top: var(--header-height);
+      padding-bottom: var(--footer-height);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-white);
+    }
+
+    .review-header {
+      height: var(--header-height);
+      background: var(--color-white);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--spacing-md);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+
+    .review-title {
+      font-size: var(--font-size-h2-mobile);
+      font-weight: 700;
+      color: var(--color-gray-900);
+      flex: 1;
+      text-align: center;
+    }
+
+    .mode-selector {
+      display: flex;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-md);
+      background: var(--color-background);
+      border-bottom: 1px solid var(--color-gray-300);
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-sm);
+      background: var(--color-white);
+      color: var(--color-gray-700);
+      font-size: var(--font-size-base-mobile);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      text-align: center;
+    }
+
+    .mode-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    .mode-btn.active {
+      background: var(--color-primary);
+      color: var(--color-white);
+      border-color: var(--color-primary);
+    }
+
+    .review-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      padding: var(--spacing-md);
+      gap: var(--spacing-md);
+    }
+
+    /* 基础模式：遮盖式背诵 */
+    .basic-mode {
+      display: flex;
+      gap: var(--spacing-md);
+      width: 100%;
+    }
+
+    .cue-panel {
+      width: 30%;
+      background: var(--color-sidebar);  /* 使用新的侧边栏颜色 */
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      overflow-y: auto;
+    }
+
+    .cue-panel-title {
+      font-size: var(--font-size-h2-mobile);
+      font-weight: 700;
+      color: var(--color-gray-900);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .cue-item {
+      padding: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+      background: var(--color-white);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-base-mobile);
+      line-height: var(--line-height-normal);
+      color: var(--color-gray-900);
+    }
+
+    .note-panel {
+      flex: 1;
+      background: var(--color-white);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-lg);
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .note-line {
+      padding: var(--spacing-sm) 0;
+      font-size: var(--font-size-base-desktop);
+      line-height: var(--line-height-loose);
+      color: var(--color-gray-900);
+      position: relative;
+      border-bottom: 1px solid var(--color-gray-300);
+      transition: all var(--transition-base);
+    }
+
+    .note-line.covered {
+      background: linear-gradient(90deg,
+        rgba(58, 110, 165, 0.1) 0%,
+        rgba(58, 110, 165, 0.05) 100%);
+      color: transparent;
+      text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .note-line.covered:hover {
+      background: linear-gradient(90deg,
+        rgba(58, 110, 165, 0.15) 0%,
+        rgba(58, 110, 165, 0.08) 100%);
+    }
+
+    .note-line.covered::after {
+      content: '点击解锁';
+      position: absolute;
+      right: var(--spacing-md);
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: var(--font-size-small-mobile);
+      color: var(--color-primary);
+      opacity: 0.7;
+    }
+
+    .note-line.revealed {
+      animation: reveal 0.3s ease-out;
+    }
+
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .unlock-btn {
+      position: fixed;
+      bottom: calc(var(--footer-height) + var(--spacing-md));
+      right: var(--spacing-md);
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      box-shadow: var(--shadow-lg);
+      font-size: 24px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      z-index: 100;
+    }
+
+    .unlock-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .unlock-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* 底部操作栏 */
+    .review-actions {
+      height: var(--footer-height);
+      background: var(--color-white);
+      box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 var(--spacing-md);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: var(--spacing-sm);
+      border: none;
+      background: transparent;
+      color: var(--color-gray-700);
+      font-size: var(--font-size-small-mobile);
+      cursor: pointer;
+      transition: color var(--transition-base);
+    }
+
+    .action-btn:hover {
+      color: var(--color-primary);
+    }
+
+    .action-btn-icon {
+      font-size: 24px;
+    }
+
+    .action-btn.marked {
+      color: var(--color-emphasis);
+    }
+
+    /* 复习报告模态框 */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-md);
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .review-report {
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      max-width: 500px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .report-header {
+      text-align: center;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .report-title {
+      font-size: var(--font-size-h1-mobile);
+      font-weight: 700;
+      color: var(--color-gray-900);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .report-icon {
+      font-size: 48px;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .report-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .stat-item {
+      background: var(--color-background);
+      padding: var(--spacing-md);
+      border-radius: var(--radius-md);
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: var(--font-size-small-mobile);
+      color: var(--color-gray-500);
+    }
+
+    .weak-points {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .weak-points-title {
+      font-size: var(--font-size-base-desktop);
+      font-weight: 600;
+      color: var(--color-gray-900);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .weak-point-item {
+      padding: var(--spacing-sm);
+      background: var(--color-background);
+      border-left: 3px solid var(--color-emphasis);
+      margin-bottom: var(--spacing-sm);
+      font-size: var(--font-size-base-mobile);
+      color: var(--color-gray-700);
+    }
+
+    .report-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+
+    .report-btn {
+      flex: 1;
+      padding: var(--spacing-md);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-base-mobile);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .report-btn-mastered {
+      background: var(--color-success);
+      color: white;
+    }
+
+    .report-btn-mastered:hover {
+      background: #229954;
+      transform: translateY(-1px);
+    }
+
+    .report-btn-not-mastered {
+      background: var(--color-emphasis);
+      color: white;
+    }
+
+    .report-btn-not-mastered:hover {
+      background: #d35400;
+      transform: translateY(-1px);
+    }
+
+    /* 进度指示器 */
+    .progress-bar {
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--color-gray-300);
+      z-index: 999;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-success) 100%);
+      transition: width var(--transition-slow);
+    }
+
+    /* 响应式 */
+    @media (max-width: 767px) {
+      .basic-mode {
+        flex-direction: column;
+      }
+
+      .cue-panel {
+        width: 100%;
+        max-height: 30%;
+      }
+
+      .note-panel {
+        flex: 1;
+      }
+
+      .unlock-btn {
+        bottom: calc(var(--footer-height) + var(--spacing-sm));
+        right: var(--spacing-sm);
+        width: 48px;
+        height: 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="review-page">
+    <!-- 顶部标题栏 -->
+    <header class="review-header">
+      <button class="btn btn-secondary" onclick="window.location.href='index.html'">
+        ← 返回
+      </button>
+      <h1 class="review-title">康奈尔笔记法介绍</h1>
+      <button class="btn btn-danger" id="exitBtn">
+        退出
+      </button>
+    </header>
+
+    <!-- 进度条 -->
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+    </div>
+
+    <!-- 模式选择器 -->
+    <div class="mode-selector">
+      <button class="mode-btn active" data-mode="basic">
+        📝 基础模式
+      </button>
+      <button class="mode-btn" data-mode="advanced">
+        🎯 进阶模式
+      </button>
+      <button class="mode-btn" data-mode="high-level">
+        🏆 高阶模式
+      </button>
+    </div>
+
+    <!-- 复习内容区域 -->
+    <div class="review-content">
+      <!-- 基础模式：遮盖式背诵 -->
+      <div class="basic-mode">
+        <!-- 线索面板 -->
+        <div class="cue-panel">
+          <h2 class="cue-panel-title">📌 线索提示</h2>
+          <div class="cue-item">什么是康奈尔笔记法？</div>
+          <div class="cue-item">5R 流程是什么？</div>
+          <div class="cue-item">如何有效使用线索栏？</div>
+          <div class="cue-item">为什么要使用三分栏布局？</div>
+        </div>
+
+        <!-- 笔记面板（遮盖） -->
+        <div class="note-panel">
+          <div class="note-line covered" data-line="1">
+            康奈尔笔记法是一种系统化的笔记方法，由康奈尔大学教授 Walter Pauk 于 1950 年代发明。
+          </div>
+          <div class="note-line covered" data-line="2">
+            该方法的核心是将笔记页面分为三个区域：线索栏（25%）、笔记栏（75%）和总结栏（底部）。
+          </div>
+          <div class="note-line covered" data-line="3">
+            5R 流程包括：Record（记录）、Reduce（简化）、Recite（背诵）、Reflect（反思）、Review（复习）。
+          </div>
+          <div class="note-line covered" data-line="4">
+            线索栏的关键是提出问题和记录关键词，引导主动思考。
+          </div>
+          <div class="note-line covered" data-line="5">
+            笔记栏用于记录课堂内容、讲座笔记或阅读要点，需要详细记录。
+          </div>
+          <div class="note-line covered" data-line="6">
+            总结栏用于概括总结本页的核心内容，用自己的话表达。
+          </div>
+          <div class="note-line covered" data-line="7">
+            康奈尔笔记法有效的原因是它将被动接收转变为主动思考，符合认知科学原理。
+          </div>
+          <div class="note-line covered" data-line="8">
+            使用三分栏布局可以帮助学生系统化整理知识，便于定期复习和记忆。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 解锁下一行按钮 -->
+    <button class="unlock-btn" id="unlockBtn" title="解锁下一行">
+      🔓
+    </button>
+
+    <!-- 底部操作栏 -->
+    <div class="review-actions">
+      <button class="action-btn" id="prevBtn">
+        <span class="action-btn-icon">⬆️</span>
+        <span>上一行</span>
+      </button>
+      <button class="action-btn" id="nextBtn">
+        <span class="action-btn-icon">⬇️</span>
+        <span>下一行</span>
+      </button>
+      <button class="action-btn" id="markBtn">
+        <span class="action-btn-icon">⭐</span>
+        <span>薄弱点</span>
+      </button>
+      <button class="action-btn" id="finishBtn">
+        <span class="action-btn-icon">✅</span>
+        <span>完成复习</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 复习报告模态框 -->
+  <div class="modal-overlay" id="reportModal">
+    <div class="review-report">
+      <div class="report-header">
+        <div class="report-icon">✅</div>
+        <h2 class="report-title">复习完成！</h2>
+      </div>
+
+      <div class="report-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="timeSpent">15分8秒</div>
+          <div class="stat-label">复习时长</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="accuracy">82%</div>
+          <div class="stat-label">正确率</div>
+        </div>
+      </div>
+
+      <div class="weak-points">
+        <div class="weak-points-title">📌 薄弱点 (2个)</div>
+        <div class="weak-point-item">康奈尔笔记法的定义</div>
+        <div class="weak-point-item">5R 流程的具体应用</div>
+      </div>
+
+      <div class="report-actions">
+        <button class="report-btn report-btn-mastered" id="masteredBtn">
+          ✓ 已掌握
+        </button>
+        <button class="report-btn report-btn-not-mastered" id="notMasteredBtn">
+          ✗ 未掌握
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 全局状态
+    let currentLine = 0;
+    let revealedLines = [];
+    let markedWeakPoints = [];
+    let startTime = Date.now();
+
+    const noteLines = document.querySelectorAll('.note-line');
+    const totalLines = noteLines.length;
+    const progressFill = document.getElementById('progressFill');
+    const reportModal = document.getElementById('reportModal');
+
+    // 更新进度条
+    function updateProgress() {
+      const progress = (revealedLines.length / totalLines) * 100;
+      progressFill.style.width = `${progress}%`;
+    }
+
+    // 解锁一行
+    function revealLine(lineElement) {
+      if (!lineElement.classList.contains('covered')) return;
+
+      lineElement.classList.remove('covered');
+      lineElement.classList.add('revealed');
+
+      const lineNum = parseInt(lineElement.dataset.line);
+      if (!revealedLines.includes(lineNum)) {
+        revealedLines.push(lineNum);
+        updateProgress();
+      }
+    }
+
+    // 点击笔记行解锁
+    noteLines.forEach(line => {
+      line.addEventListener('click', () => {
+        revealLine(line);
+      });
+    });
+
+    // 解锁按钮 - 解锁下一个未解锁的行
+    document.getElementById('unlockBtn').addEventListener('click', () => {
+      const coveredLines = Array.from(noteLines).filter(line =>
+        line.classList.contains('covered')
+      );
+
+      if (coveredLines.length > 0) {
+        revealLine(coveredLines[0]);
+        coveredLines[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+
+    // 上一行
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (currentLine > 0) {
+        currentLine--;
+        noteLines[currentLine].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+
+    // 下一行
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (currentLine < totalLines - 1) {
+        currentLine++;
+        noteLines[currentLine].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+
+    // 标记薄弱点
+    document.getElementById('markBtn').addEventListener('click', () => {
+      const currentLineElement = noteLines[currentLine];
+      const lineNum = parseInt(currentLineElement.dataset.line);
+
+      const btn = document.getElementById('markBtn');
+
+      if (markedWeakPoints.includes(lineNum)) {
+        // 取消标记
+        markedWeakPoints = markedWeakPoints.filter(l => l !== lineNum);
+        btn.classList.remove('marked');
+        currentLineElement.style.borderLeft = 'none';
+      } else {
+        // 添加标记
+        markedWeakPoints.push(lineNum);
+        btn.classList.add('marked');
+        currentLineElement.style.borderLeft = '4px solid var(--color-emphasis)';
+      }
+    });
+
+    // 完成复习
+    document.getElementById('finishBtn').addEventListener('click', () => {
+      // 计算复习时长
+      const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+      const minutes = Math.floor(timeSpent / 60);
+      const seconds = timeSpent % 60;
+      document.getElementById('timeSpent').textContent = `${minutes}分${seconds}秒`;
+
+      // 计算正确率（示例）
+      const accuracy = Math.floor((revealedLines.length / totalLines) * 100);
+      document.getElementById('accuracy').textContent = `${accuracy}%`;
+
+      // 显示报告
+      reportModal.classList.add('show');
+    });
+
+    // 已掌握
+    document.getElementById('masteredBtn').addEventListener('click', () => {
+      alert('已标记为"已掌握"，下次复习时间延长至 15 天后');
+      window.location.href = 'index.html';
+    });
+
+    // 未掌握
+    document.getElementById('notMasteredBtn').addEventListener('click', () => {
+      alert('已标记为"未掌握"，已加入明日复习清单');
+      window.location.href = 'index.html';
+    });
+
+    // 退出按钮
+    document.getElementById('exitBtn').addEventListener('click', () => {
+      if (confirm('确定要退出复习吗？当前进度将不会保存。')) {
+        window.location.href = 'index.html';
+      }
+    });
+
+    // 模式切换（占位）
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const mode = btn.dataset.mode;
+        if (mode !== 'basic') {
+          alert(`${btn.textContent.trim()} 开发中...`);
+        }
+      });
+    });
+
+    // 键盘快捷键
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        document.getElementById('prevBtn').click();
+      } else if (e.key === 'ArrowDown') {
+        document.getElementById('nextBtn').click();
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        document.getElementById('unlockBtn').click();
+      } else if (e.key === 's' || e.key === 'S') {
+        document.getElementById('markBtn').click();
+      }
+    });
+
+    // 初始化提示
+    console.log('复习页面已加载');
+    console.log('快捷键：↑/↓ 切换行，空格 解锁，S 标记薄弱点');
+  </script>
+</body>
+</html>

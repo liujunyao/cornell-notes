@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首页 - 康奈尔笔记学习助手</title>
+  <link rel="stylesheet" href="../css/design-system.css">
+  <style>
+    /* PC/平板优先的左侧导航布局 */
+    body {
+      overflow: hidden;
+    }
+
+    .app-container {
+      display: flex;
+      height: 100vh;
+      background: var(--color-background);
+    }
+
+    /* 左侧导航栏（垂直图标菜单）*/
+    .sidebar-nav {
+      width: 80px;
+      background: var(--color-white);
+      border-right: 1px solid var(--color-gray-300);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--spacing-md) 0;
+      flex-shrink: 0;
+    }
+
+    .app-logo {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: var(--spacing-xl);
+      cursor: pointer;
+    }
+
+    .nav-menu {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+      width: 100%;
+      align-items: center;
+    }
+
+    .nav-item {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      text-decoration: none;
+      color: var(--color-gray-500);
+      position: relative;
+    }
+
+    .nav-item:hover {
+      background: var(--color-background);
+      color: var(--color-primary);
+    }
+
+    .nav-item.active {
+      background: rgba(67, 97, 238, 0.1);
+      color: var(--color-primary);
+    }
+
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: var(--color-primary);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-icon {
+      font-size: 24px;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    /* 主内容区域 */
+    .main-content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* 左侧面板（笔记列表、分类）*/
+    .content-sidebar {
+      width: 320px;
+      background: var(--color-white);
+      border-right: 1px solid var(--color-gray-300);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      padding: var(--spacing-lg) var(--spacing-md);
+      border-bottom: 1px solid var(--color-gray-300);
+    }
+
+    .sidebar-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .sidebar-title {
+      font-size: var(--font-size-h1-mobile);
+      font-weight: 700;
+      color: var(--color-gray-900);
+    }
+
+    .new-category-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 18px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .new-category-btn:hover {
+      background: var(--color-primary-dark);
+      transform: scale(1.05);
+    }
+
+    /* Tab 标签页 */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--color-gray-300);
+    }
+
+    .view-tab {
+      flex: 1;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: none;
+      background: transparent;
+      color: var(--color-gray-500);
+      font-size: var(--font-size-base-mobile);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      border-bottom: 2px solid transparent;
+      position: relative;
+      top: 1px;
+    }
+
+    .view-tab:hover {
+      color: var(--color-gray-700);
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .view-tab.active {
+      color: var(--color-primary);
+      border-bottom-color: var(--color-primary);
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 12px 10px 36px;
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-base-mobile);
+      background: var(--color-background);
+      transition: all var(--transition-base);
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      background: var(--color-white);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-gray-500);
+      font-size: 16px;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--spacing-md);
+    }
+
+    .category-section {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background var(--transition-base);
+      position: relative;
+    }
+
+    .category-header:hover {
+      background: var(--color-background);
+    }
+
+    .category-header:hover .category-actions {
+      opacity: 1;
+    }
+
+    .category-title-row {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      flex: 1;
+    }
+
+    .category-title {
+      font-size: var(--font-size-base-desktop);
+      font-weight: 600;
+      color: var(--color-gray-700);
+    }
+
+    .category-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+
+    .category-action-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--color-gray-500);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .category-action-btn:hover {
+      background: var(--color-white);
+      color: var(--color-primary);
+    }
+
+    .category-count {
+      font-size: var(--font-size-small-mobile);
+      color: var(--color-gray-500);
+      background: var(--color-background);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+    }
+
+    .note-list-item {
+      padding: var(--spacing-sm);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      margin-bottom: 4px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .note-list-item:hover {
+      background: var(--color-background);
+    }
+
+    .note-list-item:hover .note-item-actions {
+      opacity: 1;
+    }
+
+    .note-list-item.active {
+      background: rgba(67, 97, 238, 0.1);
+      border-left: 3px solid var(--color-primary);
+    }
+
+    .note-list-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .note-list-title {
+      font-size: var(--font-size-base-mobile);
+      font-weight: 500;
+      color: var(--color-gray-900);
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .note-list-meta {
+      font-size: var(--font-size-small-mobile);
+      color: var(--color-gray-500);
+    }
+
+    .note-item-actions {
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+
+    .note-action-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--color-gray-500);
+      font-size: 14px;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .note-action-btn:hover {
+      background: var(--color-white);
+      color: var(--color-primary);
+    }
+
+    /* 右侧主面板（笔记详情/预览）*/
+    .main-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-white);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: var(--spacing-lg) var(--spacing-xl);
+      border-bottom: 1px solid var(--color-gray-300);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-header-left {
+      flex: 1;
+    }
+
+    .panel-title {
+      font-size: var(--font-size-h1-desktop);
+      font-weight: 700;
+      color: var(--color-gray-900);
+      margin-bottom: 4px;
+    }
+
+    .panel-meta {
+      font-size: var(--font-size-small-desktop);
+      color: var(--color-gray-500);
+      display: flex;
+      gap: var(--spacing-md);
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--spacing-xl);
+    }
+
+    /* 康奈尔笔记三要素预览 */
+    .cornell-preview {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-lg);
+    }
+
+    .cornell-preview-top {
+      display: flex;
+      gap: var(--spacing-lg);
+      height: 400px;
+    }
+
+    /* 线索栏（左侧 25%） */
+    .cornell-cue-section {
+      flex: 0 0 25%;
+      background: var(--color-sidebar);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      border-left: 4px solid var(--color-accent);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 笔记栏（右侧 75%） */
+    .cornell-notes-section {
+      flex: 1;
+      background: var(--color-white);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      border: 1px solid var(--color-gray-300);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    /* 总结栏（底部，全宽） */
+    .cornell-summary-section {
+      background: var(--color-background);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      border-left: 4px solid var(--color-primary);
+      min-height: 120px;
+    }
+
+    /* 康奈尔笔记区域标签 */
+    .cornell-section-label {
+      font-size: var(--font-size-base-desktop);
+      font-weight: 600;
+      color: var(--color-gray-900);
+      margin-bottom: var(--spacing-sm);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    /* 康奈尔笔记区域内容 */
+    .cornell-section-content {
+      flex: 1;
+      overflow-y: auto;
+      font-size: var(--font-size-base-desktop);
+      line-height: 1.6;
+      color: var(--color-gray-700);
+    }
+
+    .cornell-section-content p {
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .cornell-section-content ul {
+      list-style-position: inside;
+    }
+
+    .cornell-section-content li {
+      margin-bottom: 4px;
+    }
+
+    /* 线索栏项目 */
+    .cue-item {
+      padding: var(--spacing-xs) 0;
+      font-size: var(--font-size-base-desktop);
+      color: var(--color-gray-900);
+      line-height: 1.5;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .cue-item:last-child {
+      border-bottom: none;
+    }
+
+    /* 快捷统计卡片 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+      padding: var(--spacing-lg);
+      border-radius: var(--radius-md);
+      color: white;
+      transition: all var(--transition-base);
+      cursor: pointer;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .stat-card-accent {
+      background: linear-gradient(135deg, var(--color-accent) 0%, #FFC947 100%);
+    }
+
+    .stat-card-success {
+      background: linear-gradient(135deg, var(--color-success) 0%, #34D399 100%);
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: var(--font-size-small-desktop);
+      opacity: 0.9;
+    }
+
+    /* 笔记卡片网格 */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .note-card {
+      background: var(--color-white);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .note-card:hover {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .note-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .note-card-title {
+      font-size: var(--font-size-base-desktop);
+      font-weight: 600;
+      color: var(--color-gray-900);
+      flex: 1;
+    }
+
+    .note-card-star {
+      color: var(--color-accent);
+      font-size: 18px;
+    }
+
+    .note-card-preview {
+      font-size: var(--font-size-small-desktop);
+      color: var(--color-gray-700);
+      line-height: 1.6;
+      margin-bottom: var(--spacing-sm);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .note-card-footer {
+      display: flex;
+      gap: var(--spacing-md);
+      font-size: var(--font-size-small-mobile);
+      color: var(--color-gray-500);
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: var(--spacing-2xl);
+      color: var(--color-gray-500);
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: var(--spacing-md);
+      opacity: 0.5;
+    }
+
+    .empty-text {
+      font-size: var(--font-size-base-desktop);
+      margin-bottom: var(--spacing-md);
+    }
+
+    /* 响应式：移动端回退到底部导航 */
+    @media (max-width: 767px) {
+      .sidebar-nav {
+        display: none;
+      }
+
+      .content-sidebar {
+        width: 100%;
+        border-right: none;
+      }
+
+      .main-panel {
+        display: none;
+      }
+
+      /* 显示底部导航 */
+      .bottom-nav {
+        display: flex !important;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1023px) {
+      .content-sidebar {
+        width: 280px;
+      }
+    }
+
+    /* 上下文菜单 */
+    .context-menu {
+      display: none;
+      position: fixed;
+      background: var(--color-white);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      min-width: 160px;
+      z-index: 1000;
+      padding: var(--spacing-xs) 0;
+    }
+
+    .context-menu.show {
+      display: block;
+    }
+
+    .context-menu-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: var(--font-size-base-mobile);
+      color: var(--color-gray-700);
+      cursor: pointer;
+      transition: background var(--transition-base);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .context-menu-item:hover {
+      background: var(--color-background);
+      color: var(--color-primary);
+    }
+
+    .context-menu-item.danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--color-emphasis);
+    }
+
+    .context-menu-divider {
+      height: 1px;
+      background: var(--color-gray-300);
+      margin: var(--spacing-xs) 0;
+    }
+
+    /* 模态框 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: var(--spacing-md);
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--color-white);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      max-width: 400px;
+      width: 100%;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .modal-title {
+      font-size: var(--font-size-h2-mobile);
+      font-weight: 700;
+      color: var(--color-gray-900);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .modal-body {
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-base-mobile);
+      transition: all var(--transition-base);
+    }
+
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+    }
+
+    .modal-select {
+      width: 100%;
+      padding: var(--spacing-sm) var(--spacing-md);
+      border: 1px solid var(--color-gray-300);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-base-mobile);
+      background: var(--color-white);
+      cursor: pointer;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: flex-end;
+    }
+
+    .modal-btn {
+      padding: var(--spacing-sm) var(--spacing-lg);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-base-mobile);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .modal-btn-cancel {
+      background: var(--color-background);
+      color: var(--color-gray-700);
+    }
+
+    .modal-btn-cancel:hover {
+      background: var(--color-gray-300);
+    }
+
+    .modal-btn-primary {
+      background: var(--color-primary);
+      color: white;
+    }
+
+    .modal-btn-primary:hover {
+      background: var(--color-primary-dark);
+    }
+</style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 左侧垂直导航栏 -->
+    <aside class="sidebar-nav">
+      <div class="app-logo">C</div>
+
+      <nav class="nav-menu">
+        <a href="index.html" class="nav-item">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">首页</span>
+        </a>
+        <a href="notes.html" class="nav-item active">
+          <span class="nav-icon">📝</span>
+          <span class="nav-label">笔记</span>
+        </a>
+        <a href="review.html" class="nav-item">
+          <span class="nav-icon">📖</span>
+          <span class="nav-label">复习</span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">⭐</span>
+          <span class="nav-label">收藏</span>
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">协作</span>
+        </a>
+      </nav>
+
+      <a href="profile.html" class="nav-item">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">我的</span>
+      </a>
+    </aside>
+
+    <!-- 主内容区域 -->
+    <div class="main-content">
+      <!-- 左侧面板（笔记列表）-->
+      <aside class="content-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title-row">
+            <h1 class="sidebar-title">我的笔记</h1>
+            <button class="new-category-btn" id="newCategoryBtn" title="新建分类">
+              +
+            </button>
+          </div>
+
+          <!-- Tab 切换 -->
+          <div class="view-tabs">
+            <button class="view-tab active" data-view="recent" id="recentTab">
+              📅 最近编辑
+            </button>
+            <button class="view-tab" data-view="category" id="categoryTab">
+              📁 按分类
+            </button>
+          </div>
+
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" placeholder="搜索笔记..." />
+          </div>
+        </div>
+
+        <div class="sidebar-content">
+          <!-- 视图 1：最近编辑 -->
+          <div class="view-content" data-view="recent" style="display: block;">
+            <div class="note-list-item" data-note-id="1">
+              <div class="note-list-content">
+                <div class="note-list-title">康奈尔笔记法介绍</div>
+                <div class="note-list-meta">今天 14:32 · 2450字</div>
+              </div>
+              <div class="note-item-actions">
+                <button class="note-action-btn" title="更多操作" data-action="more">
+                  ⋮
+                </button>
+              </div>
+            </div>
+            <div class="note-list-item" data-note-id="2">
+              <div class="note-list-content">
+                <div class="note-list-title">5R 笔记法详解</div>
+                <div class="note-list-meta">昨天 16:20 · 1820字</div>
+              </div>
+              <div class="note-item-actions">
+                <button class="note-action-btn" title="更多操作" data-action="more">
+                  ⋮
+                </button>
+              </div>
+            </div>
+            <div class="note-list-item" data-note-id="3">
+              <div class="note-list-content">
+                <div class="note-list-title">主动学习策略</div>
+                <div class="note-list-meta">2天前 · 1650字</div>
+              </div>
+              <div class="note-item-actions">
+                <button class="note-action-btn" title="更多操作" data-action="more">
+                  ⋮
+                </button>
+              </div>
+            </div>
+            <div class="note-list-item" data-note-id="4">
+              <div class="note-list-content">
+                <div class="note-list-title">Python 基础语法</div>
+                <div class="note-list-meta">3天前 · 3200字</div>
+              </div>
+              <div class="note-item-actions">
+                <button class="note-action-btn" title="更多操作" data-action="more">
+                  ⋮
+                </button>
+              </div>
+            </div>
+            <div class="note-list-item" data-note-id="5">
+              <div class="note-list-content">
+                <div class="note-list-title">数据结构：链表</div>
+                <div class="note-list-meta">5天前 · 2800字</div>
+              </div>
+              <div class="note-item-actions">
+                <button class="note-action-btn" title="更多操作" data-action="more">
+                  ⋮
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 视图 2：按分类 -->
+          <div class="view-content" data-view="category" style="display: none;">
+            <!-- 分类：学习笔记 -->
+            <div class="category-section">
+              <div class="category-header" data-category="study">
+                <div class="category-title-row">
+                  <span class="category-title">📚 学习笔记</span>
+                  <span class="category-count">12</span>
+                </div>
+                <div class="category-actions">
+                  <button class="category-action-btn" title="新建笔记" data-action="new-note">
+                    ➕
+                  </button>
+                  <button class="category-action-btn" title="更多操作" data-action="more">
+                    ⋮
+                  </button>
+                </div>
+              </div>
+              <div class="note-list-item" data-note-id="4">
+                <div class="note-list-content">
+                  <div class="note-list-title">Python 基础语法</div>
+                  <div class="note-list-meta">3天前 · 3200字</div>
+                </div>
+                <div class="note-item-actions">
+                  <button class="note-action-btn" title="更多操作" data-action="more">
+                    ⋮
+                  </button>
+                </div>
+              </div>
+              <div class="note-list-item" data-note-id="5">
+                <div class="note-list-content">
+                  <div class="note-list-title">数据结构：链表</div>
+                  <div class="note-list-meta">5天前 · 2800字</div>
+                </div>
+                <div class="note-item-actions">
+                  <button class="note-action-btn" title="更多操作" data-action="more">
+                    ⋮
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 分类：项目管理 -->
+            <div class="category-section">
+              <div class="category-header" data-category="project">
+                <div class="category-title-row">
+                  <span class="category-title">💼 项目管理</span>
+                  <span class="category-count">8</span>
+                </div>
+                <div class="category-actions">
+                  <button class="category-action-btn" title="新建笔记" data-action="new-note">
+                    ➕
+                  </button>
+                  <button class="category-action-btn" title="更多操作" data-action="more">
+                    ⋮
+                  </button>
+                </div>
+              </div>
+              <div class="note-list-item" data-note-id="6">
+                <div class="note-list-content">
+                  <div class="note-list-title">敏捷开发方法论</div>
+                  <div class="note-list-meta">1周前 · 2150字</div>
+                </div>
+                <div class="note-item-actions">
+                  <button class="note-action-btn" title="更多操作" data-action="more">
+                    ⋮
+                  </button>
+                </div>
+              </div>
+              <div class="note-list-item" data-note-id="7">
+                <div class="note-list-content">
+                  <div class="note-list-title">Scrum 框架详解</div>
+                  <div class="note-list-meta">1周前 · 1920字</div>
+                </div>
+                <div class="note-item-actions">
+                  <button class="note-action-btn" title="更多操作" data-action="more">
+                    ⋮
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 右侧主面板 -->
+      <main class="main-panel">
+        <div class="panel-header">
+          <div class="panel-header-left">
+            <h2 class="panel-title">康奈尔笔记法介绍</h2>
+            <div class="panel-meta">
+              <span>📅 2024-01-29</span>
+              <span>📝 2450 字</span>
+              <span>⏱️ 预计复习 15 分钟</span>
+            </div>
+          </div>
+          <div class="panel-actions">
+            <button class="btn btn-secondary">📤 分享</button>
+            <button class="btn btn-primary" onclick="window.location.href='note-editor.html'">✏️ 编辑</button>
+          </div>
+        </div>
+
+        <div class="panel-content">
+          <!-- 康奈尔笔记三要素预览 -->
+          <div class="cornell-preview">
+            <!-- 线索栏 + 笔记栏 -->
+            <div class="cornell-preview-top">
+              <!-- 线索栏（左侧 25%） -->
+              <div class="cornell-cue-section">
+                <div class="cornell-section-label">📌 线索栏</div>
+                <div class="cornell-section-content">
+                  <div class="cue-item">康奈尔笔记法是什么？</div>
+                  <div class="cue-item">三个区域分别是？</div>
+                  <div class="cue-item">5R 流程包括？</div>
+                  <div class="cue-item">线索栏的作用？</div>
+                </div>
+              </div>
+
+              <!-- 笔记栏（右侧 75%） -->
+              <div class="cornell-notes-section">
+                <div class="cornell-section-label">📝 笔记栏</div>
+                <div class="cornell-section-content">
+                  <p>康奈尔笔记法是一种系统化的笔记方法，由康奈尔大学教授 Walter Pauk 于 1950 年代发明。</p>
+                  <p>该方法将笔记页面分为三个区域：</p>
+                  <ul style="margin-left: 16px; margin-bottom: 8px;">
+                    <li>线索栏（25%）- 记录关键词和问题</li>
+                    <li>笔记栏（75%）- 记录主要内容</li>
+                    <li>总结栏（底部）- 概括总结</li>
+                  </ul>
+                  <p>5R 流程：Record → Reduce → Recite → Reflect → Review</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 总结栏（底部，全宽） -->
+            <div class="cornell-summary-section">
+              <div class="cornell-section-label">✨ 总结栏</div>
+              <div class="cornell-section-content">
+                康奈尔笔记法通过三区域设计和5R流程，帮助学生系统化记录、整理和复习笔记，提高学习效率和知识保留率。线索栏引导思考，笔记栏详细记录，总结栏概括要点。
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 移动端底部导航（仅移动端显示）-->
+  <nav class="bottom-nav" style="display: none;">
+    <a href="index.html" class="bottom-nav-item active">
+      <span style="font-size: 24px;">🏠</span>
+      <span>首页</span>
+    </a>
+    <a href="review.html" class="bottom-nav-item">
+      <span style="font-size: 24px;">📖</span>
+      <span>复习</span>
+    </a>
+    <a href="#" class="bottom-nav-item">
+      <span style="font-size: 24px;">👥</span>
+      <span>协作</span>
+    </a>
+    <a href="profile.html" class="bottom-nav-item">
+      <span style="font-size: 24px;">👤</span>
+      <span>我的</span>
+    </a>
+  </nav>
+
+  <!-- 分类上下文菜单 -->
+  <div class="context-menu" id="categoryContextMenu">
+    <button class="context-menu-item" data-action="new-note">
+      <span>➕</span>
+      <span>新建笔记</span>
+    </button>
+    <button class="context-menu-item" data-action="rename">
+      <span>✏️</span>
+      <span>重命名</span>
+    </button>
+    <div class="context-menu-divider"></div>
+    <button class="context-menu-item danger" data-action="delete">
+      <span>🗑️</span>
+      <span>删除分类</span>
+    </button>
+  </div>
+
+  <!-- 笔记上下文菜单 -->
+  <div class="context-menu" id="noteContextMenu">
+    <button class="context-menu-item" data-action="open">
+      <span>📄</span>
+      <span>打开</span>
+    </button>
+    <button class="context-menu-item" data-action="move">
+      <span>📁</span>
+      <span>移动到...</span>
+    </button>
+    <button class="context-menu-item" data-action="copy">
+      <span>📋</span>
+      <span>复制</span>
+    </button>
+    <div class="context-menu-divider"></div>
+    <button class="context-menu-item danger" data-action="delete">
+      <span>🗑️</span>
+      <span>删除</span>
+    </button>
+  </div>
+
+  <!-- 新建分类模态框 -->
+  <div class="modal" id="newCategoryModal">
+    <div class="modal-content">
+      <h2 class="modal-title">新建分类</h2>
+      <div class="modal-body">
+        <input type="text" class="modal-input" id="categoryNameInput" placeholder="请输入分类名称" />
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" id="cancelNewCategory">取消</button>
+        <button class="modal-btn modal-btn-primary" id="confirmNewCategory">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 移动笔记模态框 -->
+  <div class="modal" id="moveNoteModal">
+    <div class="modal-content">
+      <h2 class="modal-title">移动笔记</h2>
+      <div class="modal-body">
+        <select class="modal-select" id="targetCategorySelect">
+          <option value="">请选择目标分类</option>
+          <option value="recent">📝 最近编辑</option>
+          <option value="study">📚 学习笔记</option>
+          <option value="project">💼 项目管理</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" id="cancelMoveNote">取消</button>
+        <button class="modal-btn modal-btn-primary" id="confirmMoveNote">移动</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 重命名分类模态框 -->
+  <div class="modal" id="renameCategoryModal">
+    <div class="modal-content">
+      <h2 class="modal-title">重命名分类</h2>
+      <div class="modal-body">
+        <input type="text" class="modal-input" id="renameCategoryInput" placeholder="请输入新名称" />
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" id="cancelRenameCategory">取消</button>
+        <button class="modal-btn modal-btn-primary" id="confirmRenameCategory">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 全局状态
+    let currentNoteId = null;
+    let currentCategoryId = null;
+    let currentView = 'recent';
+
+    // ===== Tab 切换 =====
+    document.getElementById('recentTab').addEventListener('click', () => {
+      switchView('recent');
+    });
+
+    document.getElementById('categoryTab').addEventListener('click', () => {
+      switchView('category');
+    });
+
+    function switchView(view) {
+      // 更新Tab样式
+      document.querySelectorAll('.view-tab').forEach(tab => {
+        if (tab.dataset.view === view) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+
+      // 隐藏"新建分类"按钮（仅分类模式需要）
+      const newCategoryBtn = document.getElementById('newCategoryBtn');
+      newCategoryBtn.style.display = view === 'category' ? 'flex' : 'none';
+
+      // 切换内容视图
+      document.querySelectorAll('.view-content').forEach(content => {
+        content.style.display = content.dataset.view === view ? 'block' : 'none';
+      });
+
+      currentView = view;
+      console.log('切换视图:', view);
+    }
+
+    // 初始化：最近编辑视图下隐藏"新建分类"按钮
+    document.getElementById('newCategoryBtn').style.display = 'none';
+
+    // ===== 搜索功能 =====
+    document.querySelector('.search-input').addEventListener('input', (e) => {
+      console.log('搜索:', e.target.value);
+    });
+
+    // ===== 笔记列表项点击 =====
+    document.querySelectorAll('.note-list-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        // 如果点击的是操作按钮，不触发列表项点击
+        if (e.target.closest('.note-action-btn')) return;
+
+        document.querySelectorAll('.note-list-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const title = item.querySelector('.note-list-title').textContent;
+        console.log('切换笔记:', title);
+      });
+    });
+
+    // ===== 统计卡片点击 =====
+    document.querySelectorAll('.stat-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const label = card.querySelector('.stat-label').textContent;
+        console.log('查看统计:', label);
+      });
+    });
+
+    // ===== 新建分类按钮 =====
+    document.getElementById('newCategoryBtn').addEventListener('click', () => {
+      showModal('newCategoryModal');
+    });
+
+    // ===== 分类操作按钮 =====
+    document.querySelectorAll('.category-header .category-action-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = btn.dataset.action;
+        const categoryHeader = btn.closest('.category-header');
+        const category = categoryHeader.dataset.category;
+
+        if (action === 'new-note') {
+          console.log('在分类中新建笔记:', category);
+          alert(`在"${categoryHeader.querySelector('.category-title').textContent}"分类下新建笔记`);
+          window.location.href = 'note-editor.html';
+        } else if (action === 'more') {
+          currentCategoryId = category;
+          showContextMenu('categoryContextMenu', e);
+        }
+      });
+    });
+
+    // ===== 笔记操作按钮 =====
+    document.querySelectorAll('.note-action-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const noteItem = btn.closest('.note-list-item');
+        currentNoteId = noteItem.dataset.noteId;
+        showContextMenu('noteContextMenu', e);
+      });
+    });
+
+    // ===== 上下文菜单 =====
+    function showContextMenu(menuId, event) {
+      const menu = document.getElementById(menuId);
+
+      // 隐藏所有上下文菜单
+      document.querySelectorAll('.context-menu').forEach(m => m.classList.remove('show'));
+
+      // 显示目标菜单
+      menu.classList.add('show');
+
+      // 定位菜单
+      const x = event.clientX;
+      const y = event.clientY;
+      menu.style.left = `${x}px`;
+      menu.style.top = `${y}px`;
+    }
+
+    // 点击页面其他地方关闭上下文菜单
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.context-menu') && !e.target.closest('.category-action-btn') && !e.target.closest('.note-action-btn')) {
+        document.querySelectorAll('.context-menu').forEach(menu => {
+          menu.classList.remove('show');
+        });
+      }
+    });
+
+    // ===== 分类上下文菜单操作 =====
+    document.querySelectorAll('#categoryContextMenu .context-menu-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.action;
+        hideAllContextMenus();
+
+        if (action === 'new-note') {
+          console.log('新建笔记');
+          window.location.href = 'note-editor.html';
+        } else if (action === 'rename') {
+          showModal('renameCategoryModal');
+        } else if (action === 'delete') {
+          if (confirm('确定要删除此分类吗？分类下的笔记将移至"未分类"。')) {
+            console.log('删除分类:', currentCategoryId);
+          }
+        }
+      });
+    });
+
+    // ===== 笔记上下文菜单操作 =====
+    document.querySelectorAll('#noteContextMenu .context-menu-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.dataset.action;
+        hideAllContextMenus();
+
+        if (action === 'open') {
+          window.location.href = 'note-editor.html';
+        } else if (action === 'move') {
+          showModal('moveNoteModal');
+        } else if (action === 'copy') {
+          console.log('复制笔记:', currentNoteId);
+          alert('笔记已复制');
+        } else if (action === 'delete') {
+          if (confirm('确定要删除此笔记吗？')) {
+            console.log('删除笔记:', currentNoteId);
+          }
+        }
+      });
+    });
+
+    // ===== 模态框操作 =====
+    function showModal(modalId) {
+      document.getElementById(modalId).classList.add('show');
+    }
+
+    function hideModal(modalId) {
+      document.getElementById(modalId).classList.remove('show');
+    }
+
+    function hideAllContextMenus() {
+      document.querySelectorAll('.context-menu').forEach(menu => {
+        menu.classList.remove('show');
+      });
+    }
+
+    // 点击模态框背景关闭
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          hideModal(modal.id);
+        }
+      });
+    });
+
+    // ===== 新建分类模态框 =====
+    document.getElementById('cancelNewCategory').addEventListener('click', () => {
+      hideModal('newCategoryModal');
+      document.getElementById('categoryNameInput').value = '';
+    });
+
+    document.getElementById('confirmNewCategory').addEventListener('click', () => {
+      const name = document.getElementById('categoryNameInput').value.trim();
+      if (!name) {
+        alert('请输入分类名称');
+        return;
+      }
+      console.log('创建分类:', name);
+      hideModal('newCategoryModal');
+      document.getElementById('categoryNameInput').value = '';
+      alert(`分类"${name}"已创建`);
+    });
+
+    // ===== 移动笔记模态框 =====
+    document.getElementById('cancelMoveNote').addEventListener('click', () => {
+      hideModal('moveNoteModal');
+    });
+
+    document.getElementById('confirmMoveNote').addEventListener('click', () => {
+      const targetCategory = document.getElementById('targetCategorySelect').value;
+      if (!targetCategory) {
+        alert('请选择目标分类');
+        return;
+      }
+      console.log('移动笔记到:', targetCategory);
+      hideModal('moveNoteModal');
+      alert('笔记已移动');
+    });
+
+    // ===== 重命名分类模态框 =====
+    document.getElementById('cancelRenameCategory').addEventListener('click', () => {
+      hideModal('renameCategoryModal');
+      document.getElementById('renameCategoryInput').value = '';
+    });
+
+    document.getElementById('confirmRenameCategory').addEventListener('click', () => {
+      const newName = document.getElementById('renameCategoryInput').value.trim();
+      if (!newName) {
+        alert('请输入新名称');
+        return;
+      }
+      console.log('重命名分类为:', newName);
+      hideModal('renameCategoryModal');
+      document.getElementById('renameCategoryInput').value = '';
+      alert(`分类已重命名为"${newName}"`);
+    });
+
+    // ===== Enter键提交 =====
+    document.getElementById('categoryNameInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('confirmNewCategory').click();
+      }
+    });
+
+    document.getElementById('renameCategoryInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('confirmRenameCategory').click();
+      }
+    });
+
+    console.log('笔记列表页面已加载（增强版）');
+  </script>
+</body>
+</html>

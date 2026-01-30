@@ -1,0 +1,23 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "composite": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@cornell-notes/ui": ["../../packages/ui/src"],
+      "@cornell-notes/utils": ["../../packages/utils/src"],
+      "@cornell-notes/types": ["../../packages/types/src"],
+      "@cornell-notes/shared": ["../../packages/shared/src"]
+    }
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "../../packages/ui" },
+    { "path": "../../packages/utils" },
+    { "path": "../../packages/types" },
+    { "path": "../../packages/shared" }
+  ]
+}
