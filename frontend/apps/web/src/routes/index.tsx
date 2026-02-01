@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 }
 
 // 路由配置
-export const router = createBrowserRouter([
+const router: ReturnType<typeof createBrowserRouter> = createBrowserRouter([
   {
     path: '/',
     element: (
@@ -106,10 +106,6 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-], {
-  future: {
-    v7_startTransition: true,
-  },
-})
+])
 
 export default router

@@ -256,16 +256,94 @@ ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-### 前端 (.env.local)
+### 前端环境变量配置
 
-Web 端 (`frontend/apps/web/.env.local`):
+前端使用 Vite 的环境变量系统，支持以下配置方式：
+
+#### 1. 环境变量文件
+
+在 `frontend/apps/web/` 目录下创建环境变量文件：
+
+- `.env.example` - 示例配置（已提交到版本控制）
+- `.env.local` - 本地开发配置（不提交）
+- `.env.production` - 生产环境配置（已提交）
+
+**开发环境** (`frontend/apps/web/.env.local`):
+```bash
+# 本地开发 API 地址
+VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
-VITE_API_BASE_URL=http://localhost:8000
+
+**生产环境** (`frontend/apps/web/.env.production`):
+```bash
+# 生产环境 API 地址
+VITE_API_BASE_URL=https://api.cornell-notes.com/api/v1
+```
+
+#### 2. 构建时指定环境变量
+
+```bash
+# 方式 1：通过环境变量构建
+VITE_API_BASE_URL=https://api.example.com/api/v1 pnpm build:web
+
+# 方式 2：使用部署脚本
+./scripts/deploy-web.sh prod    # 生产环境
+./scripts/deploy-web.sh staging # 测试环境
+./scripts/deploy-web.sh dev     # 开发环境
+```
+
+#### 3. API URL 自动配置逻辑
+
+前端会按以下优先级确定 API URL（`frontend/apps/web/src/services/api.ts`）：
+
+1. **环境变量** - `VITE_API_BASE_URL`（最高优先级）
+2. **生产环境** - 使用相对路径 `/api/v1`（由 Nginx 反向代理处理）
+3. **开发环境** - 默认 `http://localhost:8000/api/v1`
+
+#### 4. 生产部署建议
+
+**方案 A：使用环境变量文件**
+```bash
+# 修改 .env.production 后构建
+pnpm build:web
+```
+
+**方案 B：使用相对路径 + Nginx 反向代理（推荐）**
+```bash
+# 使用默认配置构建（生产环境自动使用 /api/v1）
+pnpm build:web
+```
+
+然后配置 Nginx：
+```nginx
+server {
+    listen 80;
+    server_name cornell-notes.com;
+
+    # 前端静态文件
+    location / {
+        root /var/www/cornell-notes/web;
+        try_files $uri $uri/ /index.html;
+    }
+
+    # API 反向代理
+    location /api/ {
+        proxy_pass http://localhost:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+**方案 C：构建时动态注入**
+```bash
+# CI/CD 环境中使用
+VITE_API_BASE_URL=$API_URL pnpm build:web
 ```
 
 移动端 (`frontend/apps/mobile/.env.local`):
 ```
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=http://localhost:8000/api/v1
 ```
 
 ## 注意事项

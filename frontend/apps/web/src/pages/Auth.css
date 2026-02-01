@@ -1,16 +1,15 @@
 /* 认证页面样式 - 康奈尔笔记风格 */
 
 .auth-page {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   background: var(--color-white);
-  overflow: hidden;
 }
 
 /* 左侧介绍区域 */
 .auth-intro {
   flex: 1;
-  height: 100vh;
+  min-height: 100vh;
   background: linear-gradient(135deg, var(--color-primary) 0%, #5B7FDB 100%);
   display: flex;
   align-items: center;
@@ -130,12 +129,12 @@
 /* 右侧表单区域 */
 .auth-form-container {
   flex: 1;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-2xl) var(--spacing-xl);
   background: var(--color-background);
-  overflow-y: auto;
 }
 
 .auth-form-box {
@@ -145,6 +144,8 @@
   border-radius: var(--radius-lg);
   padding: var(--spacing-2xl);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  /* 确保在小屏幕上也能完整显示 */
+  margin: var(--spacing-xl) 0;
 }
 
 .auth-form-header {
@@ -444,9 +445,91 @@
 
   .auth-form-box {
     padding: var(--spacing-lg);
+    margin: var(--spacing-md) 0;
   }
 
   .auth-form-header h2 {
     font-size: 24px;
+  }
+}
+
+/* 针对小屏幕高度优化（如 Mac 笔记本） */
+@media (max-height: 800px) {
+  .auth-intro {
+    padding: var(--spacing-xl);
+  }
+
+  .auth-intro-content {
+    max-width: 450px;
+  }
+
+  .app-logo-large {
+    width: 60px;
+    height: 60px;
+  }
+
+  .app-title {
+    font-size: 36px;
+  }
+
+  .intro-features {
+    gap: var(--spacing-md);
+  }
+
+  .intro-feature {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .auth-form-container {
+    padding: var(--spacing-lg) var(--spacing-md);
+    align-items: flex-start;
+  }
+
+  .auth-form-box {
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-lg);
+  }
+
+  .form-group {
+    gap: var(--spacing-xs);
+  }
+
+  .auth-form {
+    gap: var(--spacing-md);
+  }
+}
+
+/* 更小的屏幕高度（如 MacBook Air） */
+@media (max-height: 700px) {
+  .auth-form-container {
+    min-height: auto;
+  }
+
+  .auth-form-box {
+    padding: var(--spacing-md);
+  }
+
+  .auth-form-header {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .auth-form-header h2 {
+    font-size: 22px;
+  }
+
+  .auth-form-header p {
+    font-size: 14px;
+  }
+
+  .form-group input {
+    padding: 12px 14px;
+  }
+
+  .btn-large {
+    padding: 14px 20px;
+  }
+
+  .auth-tips {
+    margin-top: var(--spacing-md);
   }
 }

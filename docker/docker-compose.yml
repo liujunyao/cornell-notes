@@ -18,9 +18,7 @@ services:
       - EXPLORE_API_KEY=${EXPLORE_API_KEY}
       - EXPLORE_BASE_URL=${EXPLORE_BASE_URL}
       - EXPLORE_MODEL_NAME=${EXPLORE_MODEL_NAME}
-    depends_on:
-      postgres:
-        condition: service_healthy
+      - INVITE_CODE=cornell2024
     restart: unless-stopped
     networks:
       - cornell-notes-network
@@ -39,9 +37,6 @@ services:
     restart: unless-stopped
     networks:
       - cornell-notes-network
-
-volumes:
-  postgres-data:
 
 networks:
   cornell-notes-network:

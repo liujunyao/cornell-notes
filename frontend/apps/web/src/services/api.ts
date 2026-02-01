@@ -3,7 +3,29 @@
  */
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'
+// 获取 API 基础 URL
+// 优先级：环境变量 > 运行时配置 > 默认值
+const getApiBaseUrl = (): string => {
+  // 1. 优先使用构建时注入的环境变量
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+
+  // 2. 生产环境使用相对路径（由反向代理处理）
+  if (import.meta.env.PROD) {
+    return '/api/v1'
+  }
+
+  // 3. 开发环境默认值
+  return 'http://localhost:8000/api/v1'
+}
+
+const API_BASE_URL = getApiBaseUrl()
+
+// 在开发环境打印 API URL，便于调试
+if (import.meta.env.DEV) {
+  console.log('[API Config] Base URL:', API_BASE_URL)
+}
 
 // 创建 axios 实例
 export const api = axios.create({

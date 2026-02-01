@@ -8,8 +8,13 @@ RUN npm install -g pnpm
 # 设置工作目录
 WORKDIR /app
 
+# 复制根级别的 TypeScript 配置（monorepo 需要）
+COPY frontend/tsconfig.json ./
+
 # 复制依赖文件
 COPY frontend/package.json frontend/pnpm-lock.yaml frontend/pnpm-workspace.yaml ./
+
+# 复制所有包和应用
 COPY frontend/apps ./apps
 COPY frontend/packages ./packages
 

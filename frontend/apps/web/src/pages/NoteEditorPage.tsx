@@ -154,7 +154,7 @@ export default function NoteEditorPage() {
   const autoSaveTimer = useRef<NodeJS.Timeout | null>(null)
 
   // 获取笔记详情
-  const { data: noteData, refetch } = useQuery({
+  const { data: noteData } = useQuery({
     queryKey: ['note', currentNoteId],
     queryFn: () => notesApi.get(currentNoteId!),
     enabled: !isNew && !!currentNoteId,

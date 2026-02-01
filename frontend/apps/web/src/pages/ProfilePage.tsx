@@ -33,12 +33,13 @@ interface UserStats {
 export default function ProfilePage() {
   const navigate = useNavigate()
   const [profile, setProfile] = useState<UserProfile | null>(null)
-  const [stats, setStats] = useState<UserStats>({
+  // TODO: 从 API 获取实际的用户统计数据
+  const stats: UserStats = {
     note_count: 0,
     review_days: 0,
     master_rate: 0,
     daily_review_avg: 0
-  })
+  }
   const [loading, setLoading] = useState(true)
 
   // Toast 状态

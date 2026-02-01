@@ -2,7 +2,7 @@
  * 笔记列表页 - 按照 notes.html 原型实现
  */
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import AppLayout from '../components/AppLayout'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -21,7 +21,6 @@ function formatWordCount(count: number): string {
 
 export default function NotesPage() {
   const navigate = useNavigate()
-  const location = useLocation()
   const queryClient = useQueryClient()
   const [currentView, setCurrentView] = useState<'recent' | 'category'>('recent')
   const [searchQuery, setSearchQuery] = useState('')
@@ -1023,10 +1022,9 @@ export default function NotesPage() {
 
       {/* 确认对话框 */}
       <ConfirmDialog
-        show={confirmDialog.show}
+        isOpen={confirmDialog.show}
         title={confirmDialog.title}
         message={confirmDialog.message}
-        type={confirmDialog.type}
         onConfirm={confirmDialog.onConfirm}
         onCancel={() => setConfirmDialog({ ...confirmDialog, show: false })}
       />
