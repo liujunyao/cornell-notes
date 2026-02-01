@@ -1,17 +1,29 @@
-import React from 'react'
+/**
+ * 主应用组件
+ */
+import { RouterProvider } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { router } from './routes'
+import './styles/global.css'
+
+// 创建 React Query 客户端
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 分钟
+    },
+  },
+})
 
 function App() {
   return (
-    <div className="app">
-      <header>
-        <h1>康奈尔笔记 - Web版</h1>
-      </header>
-      <main>
-        <p>欢迎使用康奈尔笔记学习助手 Web 版</p>
-        <p>项目正在开发中...</p>
-      </main>
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
   )
 }
 
 export default App
+

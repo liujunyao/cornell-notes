@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>优化版康奈尔笔记页面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        /* 页面容器 */
+        .note-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        /* 顶部标题栏 */
+        .note-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .note-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .note-meta {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-edit {
+            background-color: #ff7d00;
+            color: #fff;
+        }
+
+        .btn-share {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        /* 康奈尔笔记核心布局 */
+        .cornell-layout {
+            display: flex;
+            flex-wrap: wrap;
+            height: calc(100vh - 100px);
+        }
+
+        /* 左侧线索区 */
+        .clue-section {
+            width: 25%;
+            padding: 20px;
+            background-color: #fff8f0;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 右侧主内容区 */
+        .content-section {
+            width: 75%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 底部总结区 */
+        .summary-section {
+            width: 100%;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border-top: 1px solid #eee;
+        }
+
+        /* 分区标题 */
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clue-section .section-title {
+            color: #ff7d00;
+        }
+
+        .content-section .section-title {
+            color: #333;
+        }
+
+        .summary-section .section-title {
+            color: #1677ff;
+        }
+
+        /* 编辑按钮（分区内） */
+        .section-edit-btn {
+            font-size: 12px;
+            padding: 4px 8px;
+            background-color: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 内容区域样式 */
+        .section-content {
+            flex: 1;
+            border-radius: 4px;
+            border: 1px dashed #ddd;
+            padding: 16px;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .content-section .section-content {
+            border: 1px solid #eee;
+        }
+
+        /* 响应式适配（平板/手机） */
+        @media (max-width: 768px) {
+            .clue-section, .content-section {
+                width: 100%;
+            }
+            .clue-section {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="note-container">
+        <!-- 顶部标题栏 -->
+        <div class="note-header">
+            <div>
+                <div class="note-title">康奈尔笔记 - 使用说明</div>
+                <div class="note-meta">2025/2/1 · 0字 · 2次浏览</div>
+            </div>
+            <div class="note-actions">
+                <button class="btn btn-edit">✏️ 编辑</button>
+                <button class="btn btn-share">📤 分享</button>
+            </div>
+        </div>
+
+        <!-- 康奈尔笔记核心布局 -->
+        <div class="cornell-layout">
+            <!-- 左侧线索/问题区 -->
+            <div class="clue-section">
+                <div class="section-title">
+                    线索和问题
+                    <span class="section-edit-btn">+ 编辑</span>
+                </div>
+                <div class="section-content">
+                    📝 点击此处添加学习线索/疑问<br>
+                    （关键词、核心问题、复习提示）
+                </div>
+            </div>
+
+            <!-- 右侧主内容区 -->
+            <div class="content-section">
+                <div class="section-title">
+                    笔记内容
+                    <span class="section-edit-btn">+ 编辑</span>
+                </div>
+                <div class="section-content">
+                    ✍️ 点击编辑笔记内容<br>
+                    （记录核心知识点、案例、公式、步骤等）
+                </div>
+            </div>
+
+            <!-- 底部总结区 -->
+            <div class="summary-section">
+                <div class="section-title">
+                    总结
+                    <span class="section-edit-btn">+ 编辑</span>
+                </div>
+                <div class="section-content">
+                    📌 点击此处总结核心要点<br>
+                    （用简洁的语言概括本页笔记的核心内容）
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

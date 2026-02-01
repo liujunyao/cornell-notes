@@ -1,112 +1,77 @@
-# 康奈尔笔记 - 学习助手
+# 🎉 前端已按原型重构完成！
 
-一个基于康奈尔笔记法的 Web 学习辅助工具，帮助用户更高效地记录、整理和回顾学习内容。
+## 立即开始
 
-## 🎯 项目愿景
-
-康奈尔笔记法是一种经过验证的系统化笔记方法，本项目旨在将这一方法数字化，提供便捷的笔记管理和学习辅助功能。
-
-## 📝 什么是康奈尔笔记法？
-
-康奈尔笔记法将笔记页面分为三个功能区域：
-
-```
-┌─────────────────────────────────────┐
-│        康奈尔笔记模板                 │
-├─────────┬──────────────────────────┤
-│         │                           │
-│  线索栏  │      笔记栏               │
-│         │                           │
-│  关键词  │   · 主要内容              │
-│  问题   │   · 详细记录              │
-│  概念   │   · 课程笔记              │
-│         │                           │
-├─────────┴──────────────────────────┤
-│                                     │
-│  总结栏                              │
-│  · 概括本页要点                      │
-│  · 用自己的话总结                    │
-│                                     │
-└─────────────────────────────────────┘
-```
-
-- **笔记栏**（右侧）：记录课堂或阅读的主要内容
-- **线索栏**（左侧）：记录关键词、问题和重要概念
-- **总结栏**（底部）：用自己的话概括总结
-
-## 🚀 技术栈
-
-### 后端
-- Python 3.10+ / FastAPI
-- SQLAlchemy 2.0
-- JWT 认证
-
-### 前端
-- React 18 + TypeScript
-- Vite
-- pnpm
-- Zustand + TanStack Query
-
-## 📂 项目结构
-
-```
-cornell-notes/
-├── backend/          # Python FastAPI 后端
-├── frontend/         # React TypeScript 前端
-├── docs/            # 项目文档
-├── design/          # 设计资源
-└── scripts/         # 实用脚本
-```
-
-详见各子目录的 README 文件。
-
-## 🛠️ 快速开始
-
-### 前置要求
-
-- Python 3.10+
-- Node.js 18+
-- pnpm 8+
-
-### 后端设置
+### 🐳 Docker 部署（推荐，支持生产环境）
 
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+cd docker
+cp .env.example .env
+# 编辑 .env，配置数据库密码和 API Key
+docker-compose up -d
 ```
 
-后端将在 http://localhost:8000 启动
+访问：http://localhost
 
-### 前端设置
+详见：[PostgreSQL 配置指南](POSTGRESQL_SETUP.md) | [Docker 部署文档](docker/README.md)
 
-```bash
-cd frontend
-pnpm install
-pnpm dev
-```
+### Windows 用户（本地开发）
+**双击运行**：`scripts\dev\start-all.bat`
 
-前端将在 http://localhost:3000 启动
+### 手动启动（本地开发）
+1. **后端**（终端1）：
+   ```bash
+   cd backend
+   # 首次启动需要配置数据库（二选一）：
+   # 方法1: 使用 SQLite（开发环境）
+   cp .env.example .env  # DATABASE_URL 使用 sqlite
 
-## 📖 文档
+   # 方法2: 使用 PostgreSQL（推荐）
+   # 1) 安装 PostgreSQL
+   # 2) 创建数据库: psql -U postgres -c "CREATE DATABASE cornell_notes"
+   # 3) 编辑 .env，设置 DATABASE_URL=postgresql://user:pass@localhost/cornell_notes
 
-- [完整文档](./docs/)
-- [API 文档](./docs/api/)
-- [架构设计](./docs/architecture/)
-- [开发指南](./CLAUDE.md)
+   .venv\Scripts\activate           # ⚠️ 必须先激活虚拟环境！
+   pip install -r requirements.txt
+   alembic upgrade head             # 运行数据库迁移
+   python app/main.py
+   ```
 
-## 🤝 贡献
+2. **前端**（终端2）：
+   ```bash
+   cd frontend
+   pnpm install
+   pnpm dev:web
+   ```
 
-欢迎贡献！请查看各子项目的 README 了解开发规范。
+## 访问地址
+- 前端：http://localhost:3000（本地开发）或 http://localhost（Docker）
+- 后端：http://localhost:8000
+- API文档：http://localhost:8000/docs
 
-## 📄 许可证
+## 重要文档
+- **🐳 [PostgreSQL 配置指南](POSTGRESQL_SETUP.md)** - 数据库切换说明
+- **🐳 [Docker 部署文档](docker/README.md)** - 容器化部署
+- **📖 [前端重构完成报告](FRONTEND_REFACTOR_COMPLETE.md)** - 详细功能说明
+- **📖 [README_COMPLETE.md](README_COMPLETE.md)** - 完整使用指南
+- **🚀 [START_HERE.md](START_HERE.md)** - 快速开始
+- **🔧 [backend/BACKEND_GUIDE.md](backend/BACKEND_GUIDE.md)** - 后端详细指南
+- **🗃️ [backend/POSTGRESQL_MIGRATION.md](backend/POSTGRESQL_MIGRATION.md)** - 数据库迁移指南
 
-待定
+## 已实现功能
+✅ 左侧垂直导航栏（完全按照原型）
+✅ 笔记列表页（Tab切换、搜索、三栏预览）
+✅ **康奈尔笔记编辑器**（三分栏布局、响应式）
+  - 线索栏 20% + 笔记栏 80% + 总结栏底部（经典模式）
+  - 线索栏 15% + 笔记栏 65% + 总结栏 20%（宽屏模式）
+  - 工具栏（格式化、AI 功能）
+  - 自动保存（5秒防抖）+ 手动保存
+  - 专注模式（折叠辅助栏）
+  - AI 深度探索对话（流式输出、对话记录保存）
+✅ 用户注册和登录（自动创建默认笔记本）
+✅ 完整的 RESTful API
+✅ **PostgreSQL 数据库**（生产级持久化）
+✅ **Docker 容器化部署**（一键启动）
+✅ 数据库迁移管理（Alembic）
 
-## 🔗 相关资源
-
-- [康奈尔笔记法介绍](https://en.wikipedia.org/wiki/Cornell_Notes)
-- [FastAPI 文档](https://fastapi.tiangolo.com/)
-- [React 文档](https://react.dev/)
+立即体验康奈尔笔记法的数字化！📝

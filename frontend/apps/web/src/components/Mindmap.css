@@ -1,0 +1,176 @@
+/* 思维导图组件样式 */
+.mindmap-container {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: var(--spacing-md);
+  position: relative;
+}
+
+.mindmap-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mindmap-node {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mindmap-node-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  transition: all var(--transition-base);
+  cursor: pointer;
+}
+
+.mindmap-node-content:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 1px 4px rgba(67, 97, 238, 0.15);
+  transform: translateX(2px);
+}
+
+.mindmap-node-content.level-0 {
+  background: linear-gradient(135deg, var(--color-primary) 0%, #5B7FDB 100%);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  border-color: transparent;
+  padding: 6px 12px;
+}
+
+.mindmap-node-content.level-1 {
+  background: rgba(67, 97, 238, 0.05);
+  border-color: var(--color-primary);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.mindmap-node-content.level-2 {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mindmap-node-content.level-3,
+.mindmap-node-content.level-4 {
+  font-size: 11px;
+  font-weight: 400;
+  border-style: dashed;
+}
+
+.mindmap-node-icon {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.mindmap-node-label {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.mindmap-children {
+  margin-left: 16px;
+  padding-left: 8px;
+  border-left: 1px solid var(--color-gray-300);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* 生成按钮 */
+.mindmap-generate-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--spacing-md);
+}
+
+.mindmap-generate-btn {
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.mindmap-generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.mindmap-generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mindmap-hint {
+  color: var(--color-gray-500);
+  font-size: 14px;
+  text-align: center;
+}
+
+/* 悬浮重新生成按钮 */
+.mindmap-regenerate-btn {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all var(--transition-base);
+  z-index: 10;
+}
+
+.mindmap-regenerate-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.mindmap-regenerate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mindmap-regenerate-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+
+/* 加载动画 */
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

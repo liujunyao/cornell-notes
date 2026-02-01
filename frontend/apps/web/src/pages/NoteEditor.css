@@ -1,0 +1,241 @@
+/* 笔记编辑器样式 - 康奈尔三分栏 */
+
+.editor-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+/* 顶部工具栏 */
+.editor-header {
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.btn-back {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-back:hover {
+  background: var(--color-background);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.editor-title-section {
+  flex: 1;
+}
+
+.editor-title-input {
+  width: 100%;
+  border: none;
+  font-size: var(--font-size-h2);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: transparent;
+  padding: 8px 0;
+}
+
+.editor-title-input:focus {
+  outline: none;
+}
+
+.editor-title-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.editor-status {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.saving {
+  color: var(--color-accent);
+}
+
+.saved {
+  color: var(--color-success);
+}
+
+/* 康奈尔笔记编辑器 */
+.cornell-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  gap: var(--spacing-lg);
+}
+
+/* 上半部分：线索栏 + 笔记栏 */
+.cornell-top {
+  display: flex;
+  gap: var(--spacing-lg);
+  flex: 1;
+  min-height: 400px;
+}
+
+/* 线索栏 - 25% */
+.cornell-cue {
+  flex: 0 0 25%;
+  background: var(--color-sidebar);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 笔记栏 - 75% */
+.cornell-notes {
+  flex: 1;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 总结栏 - 底部 */
+.cornell-summary {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 区域标题 */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.section-icon {
+  font-size: 18px;
+}
+
+.section-title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+/* 文本域通用样式 */
+.cue-textarea,
+.notes-textarea,
+.summary-textarea {
+  flex: 1;
+  border: none;
+  resize: none;
+  font-size: var(--font-size-body);
+  line-height: 1.6;
+  color: var(--color-text-primary);
+  background: transparent;
+  font-family: var(--font-family);
+}
+
+.cue-textarea:focus,
+.notes-textarea:focus,
+.summary-textarea:focus {
+  outline: none;
+}
+
+.cue-textarea::placeholder,
+.notes-textarea::placeholder,
+.summary-textarea::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+/* 线索栏特殊样式 */
+.cue-textarea {
+  min-height: 300px;
+}
+
+/* 笔记栏特殊样式 */
+.notes-textarea {
+  min-height: 300px;
+}
+
+/* 总结栏特殊样式 */
+.summary-textarea {
+  min-height: 100px;
+}
+
+/* 加载状态 */
+.loading-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-h3);
+  color: var(--color-text-secondary);
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .cornell-top {
+    flex-direction: column;
+  }
+
+  .cornell-cue {
+    flex: 1;
+    min-height: 200px;
+  }
+
+  .cornell-notes {
+    flex: 1;
+    min-height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .editor-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+    gap: var(--spacing-sm);
+  }
+
+  .editor-title-input {
+    font-size: var(--font-size-h3);
+  }
+
+  .cornell-editor {
+    padding: var(--spacing-md);
+    gap: var(--spacing-md);
+  }
+
+  .cornell-cue,
+  .cornell-notes,
+  .cornell-summary {
+    padding: var(--spacing-md);
+  }
+
+  .editor-status {
+    font-size: 10px;
+  }
+}

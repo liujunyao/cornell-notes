@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>AI生成思维导图展示</title>
+  <!-- 引入jsmind的CSS和JS（CDN方式，无需下载） -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsmind@0.4.5/style/jsmind.css">
+  <script src="https://cdn.jsdelivr.net/npm/jsmind@0.4.5/js/jsmind.js"></script>
+  <style>
+    /* 调整容器样式，适配浏览器 */
+    #mindmap-container {
+      width: 100%;
+      height: 800px;
+      border: 1px solid #eee;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h2>AI生成的知识思维导图</h2>
+  <div id="mindmap-container"></div>
+
+  <script>
+    // 1. 定义AI生成的思维导图数据
+    const mindData = {
+      "meta": { "name": "React核心知识点" },
+      "format": "node_tree",
+      "data": {
+        "id": "root",
+        "topic": "React核心知识点",
+        "children": [
+          {
+            "id": "1",
+            "topic": "组件",
+            "children": [{"id": "1-1", "topic": "函数组件"}, {"id": "1-2", "topic": "类组件"}]
+          },
+          {
+            "id": "2",
+            "topic": "生命周期",
+            "children": [{"id": "2-1", "topic": "挂载"}, {"id": "2-2", "topic": "更新"}, {"id": "2-3", "topic": "卸载"}]
+          },
+          {
+            "id": "3",
+            "topic": "Hooks",
+            "children": [{"id": "3-1", "topic": "useState"}, {"id": "3-2", "topic": "useEffect"}, {"id": "3-3", "topic": "useRef"}]
+          },
+          {
+            "id": "4",
+            "topic": "状态管理",
+            "children": [{"id": "4-1", "topic": "Context"}, {"id": "4-2", "topic": "Redux"}]
+          }
+        ]
+      }
+    };
+
+    // 2. 初始化并渲染思维导图
+    const jm = new jsMind({
+      container: 'mindmap-container', // 容器ID
+      editable: false, // 是否可编辑（false仅展示，true可修改）
+      theme: 'primary', // 主题样式
+      data: mindData // 思维导图数据
+    });
+    jm.show(); // 渲染到浏览器
+  </script>
+</body>
+</html>

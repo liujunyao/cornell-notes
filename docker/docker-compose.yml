@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # 后端服务
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    image: c8n.io/liujunyao/cornell-notes-backend:latest
+    container_name: cornell-notes-backend
+    ports:
+      - "8101:8101"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-cornell_user}:${POSTGRES_PASSWORD:-cornell_pass}@postgres:5432/${POSTGRES_DB:-cornell_notes}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-me}
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - EXPLORE_API_KEY=${EXPLORE_API_KEY}
+      - EXPLORE_BASE_URL=${EXPLORE_BASE_URL}
+      - EXPLORE_MODEL_NAME=${EXPLORE_MODEL_NAME}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cornell-notes-network
+
+  # 前端服务
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+    image: c8n.io/liujunyao/cornell-notes-frontend:latest
+    container_name: cornell-notes-frontend
+    ports:
+      - "8100:8100"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - cornell-notes-network
+
+volumes:
+  postgres-data:
+
+networks:
+  cornell-notes-network:
+    driver: bridge
